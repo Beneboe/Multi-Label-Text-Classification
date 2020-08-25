@@ -85,7 +85,6 @@ sum(y_val)
 import keras
 
 embedding_layer = model.get_keras_embedding(train_embeddings=False)
-# embedding_layer.input_length = INPUT_LENGTH
 
 classifier_keras_model = keras.models.Sequential(
     [
@@ -104,7 +103,7 @@ classifier_keras_model.summary()
 history = classifier_keras_model.fit(x_train, y_train, epochs=10, verbose=1, validation_data=(x_val, y_val), batch_size=10)
 
 # %%
-classifier_keras_model.save('models/first-steps/classifier(inputl 30, l1units 16, epochs 10, batch_s 10)')
+# classifier_keras_model.save('models/first-steps/classifier(inputl 30, l1units 16, epochs 10, batch_s 10)')
 
 # %%
 import matplotlib.pyplot as plt
@@ -124,3 +123,70 @@ text1
 
 # %%
 classifier_keras_model.predict(text1)
+
+
+# %% [markdown]
+# ## Train Model with Updated Parameters
+
+# %%
+import keras
+
+embedding_layer = model.get_keras_embedding(train_embeddings=False)
+
+classifier = keras.Sequential(
+    [
+        keras.layers.InputLayer(input_shape=(100,)),
+        embedding_layer,
+        keras.layers.Dense(units=8, activation='relu'),
+        keras.layers.Flatten(),
+        keras.layers.Dense(units=1, activation='sigmoid'),
+    ]
+)
+classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+classifier.summary()
+
+
+# %%
+history = classifier.fit(x_train, y_train, epochs=30, verbose=1, validation_data=(x_val, y_val), batch_size=10)
+
+# %%
+import matplotlib.pyplot as plt
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+# %% [markdown]
+# ## Train Model with Updated Parameters (Again)
+
+# %%
+import keras
+
+classifier = keras.Sequential(
+    [
+        keras.layers.InputLayer(input_shape=(100,)),
+        embedding_layer,
+        keras.layers.Dense(units=4, activation='relu'),
+        keras.layers.Flatten(),
+        keras.layers.Dense(units=1, activation='sigmoid'),
+    ]
+)
+classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+classifier.summary()
+
+# %%
+history = classifier.fit(x_train, y_train, epochs=20, verbose=1, validation_data=(x_val, y_val), batch_size=20)
+
+# %%
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+# %%
