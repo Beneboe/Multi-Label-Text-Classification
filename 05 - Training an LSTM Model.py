@@ -76,7 +76,7 @@ embedding_layer = model.get_keras_embedding(train_embeddings=False)
 
 lstm_classifier = keras.Sequential(
     [
-        keras.layers.InputLayer(input_shape=(100,)),
+        keras.layers.InputLayer(input_shape=(INPUT_LENGTH,)),
         embedding_layer,
         keras.layers.LSTM(100),
         keras.layers.Dense(units=1, activation='sigmoid'),

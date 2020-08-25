@@ -1,5 +1,5 @@
 # %% [markdown]
-# # Setup a Simple Deep Learning Classifier using Keras
+# # Create a Simple Binary Classifier using Keras
 
 # %% [markdown]
 # ## Import the Embedding Layer
@@ -88,7 +88,7 @@ embedding_layer = model.get_keras_embedding(train_embeddings=False)
 
 classifier_keras_model = keras.models.Sequential(
     [
-        keras.layers.InputLayer(input_shape=(100,)),
+        keras.layers.InputLayer(input_shape=(INPUT_LENGTH,)),
         embedding_layer,
         keras.layers.Dense(units=16, activation='relu'),
         keras.layers.Flatten(),
@@ -135,7 +135,7 @@ embedding_layer = model.get_keras_embedding(train_embeddings=False)
 
 classifier = keras.Sequential(
     [
-        keras.layers.InputLayer(input_shape=(100,)),
+        keras.layers.InputLayer(input_shape=(INPUT_LENGTH,)),
         embedding_layer,
         keras.layers.Dense(units=8, activation='relu'),
         keras.layers.Flatten(),
@@ -167,7 +167,7 @@ import keras
 
 classifier = keras.Sequential(
     [
-        keras.layers.InputLayer(input_shape=(100,)),
+        keras.layers.InputLayer(input_shape=(INPUT_LENGTH,)),
         embedding_layer,
         keras.layers.Dense(units=4, activation='relu'),
         keras.layers.Flatten(),
