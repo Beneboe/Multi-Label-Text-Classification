@@ -16,6 +16,7 @@ model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/Go
 import pandas as pd
 import numpy as np
 from keras.preprocessing.sequence import pad_sequences
+from sklearn.model_selection import train_test_split
 
 INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
@@ -25,39 +26,67 @@ df = pd.read_csv("datasets/charcnn_keras_processed.csv",
     index_col=0,
     converters={"text": lambda x: x.strip("[]").replace("'","").split(", ")})
 
-labels = df['class'].to_numpy()
-
-# Get one-hot encoding for each label
-labels = np.eye(CLASS_COUNT, dtype=int)[labels - 1]
-
-# make sequences same length
+# Make sequences same length
 data = pad_sequences(df['text'], maxlen=INPUT_LENGTH)
 
-indices = np.arange(data.shape[0])
-np.random.shuffle(indices)
+datasets = [None] * CLASS_COUNT
+for i in range(1, CLASS_COUNT + 1):
+    indices = np.arange(df.shape[0])
+    positive_indices = indices[df['class'] == i]
+    # negative_indices = indices[df['class'] != i]
 
-# randomize the dataset
-data = data[indices]
-labels = labels[indices]
+    X = data
+    y = np.zeros(data.shape[0])
+    y[positive_indices] = 1
 
-train_count = int((1 - VALIDATION_SPLIT) * data.shape[0])
-val_count = data.shape[0] - train_count
+    datasets[i - 1] = train_test_split(
+        X, y, test_size=VALIDATION_SPLIT, random_state=42)
 
-# get the train and validation indices for the original dataset
-train_indices = np.zeros((CLASS_COUNT, train_count // CLASS_COUNT), dtype=int)
-val_indices = np.zeros((CLASS_COUNT, val_count // CLASS_COUNT), dtype=int)
-for cls_id in range(0, CLASS_COUNT):
-    class_indices = np.arange(data.shape[0])[labels[:, cls_id] == 1]
-    train_indices[cls_id] = class_indices[:(train_count // 4)]
-    val_indices[cls_id] = class_indices[(train_count // 4):]
+# %% [markdown]
+# ## Define the Classifier Model
 
-train_indices = train_indices.flatten()
-val_indices = val_indices.flatten()
+# %%
+import keras
+class SimpleClassifier (keras.Sequential):
+    def __init__(self, embedding_layer, d_units=8):
+        super().__init__([
+            keras.layers.InputLayer(input_shape=(INPUT_LENGTH,)),
+            embedding_layer,
+            keras.layers.Dense(units=d_units, activation='relu'),
+            keras.layers.Flatten(),
+            keras.layers.Dense(units=1, activation='sigmoid'),
+        ])
 
-# set the data
-# [x, x, x, x, x, x, x, x, o, o]
-x_train = data[train_indices]
-y_train = labels[train_indices]
-# [o, o, o, o, o, o, o, o, x, x]
-x_val = data[val_indices]
-y_val = labels[val_indices]
+# %% [markdown]
+# ## Create the Classifier Models
+
+# %%
+embedding_layer = model.get_keras_embedding(train_embeddings=False)
+classifiers = [None] * CLASS_COUNT
+for i in range(CLASS_COUNT):
+    classifiers[i] = SimpleClassifier(embedding_layer)
+    classifiers[i].compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    classifiers[i].summary()
+
+# %% [markdown]
+# ## Fit the Classifier Models
+
+# %%
+histories = [None] * CLASS_COUNT
+for i in range(CLASS_COUNT):
+    X_train, X_test, y_train, y_test = datasets[i]
+    histories[i] = classifiers[i].fit(X_train, y_train, epochs=10, verbose=1, validation_data=(X_test, y_test), batch_size=10)
+
+# %%
+import matplotlib.pyplot as plt
+
+for i in range(CLASS_COUNT):
+    plt.plot(histories[i].history['accuracy'])
+    plt.plot(histories[i].history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+
+# %%
