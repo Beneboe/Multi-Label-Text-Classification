@@ -144,3 +144,5 @@ dmypy.json
 datasets/
 # Ignore models
 models/
+
+sjup.ps1

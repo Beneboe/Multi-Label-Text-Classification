@@ -79,16 +79,17 @@ sum(y_train)
 sum(y_val)
 
 # %% [markdown]
-# ## Train a Classifier Model
+# ## Train the Simple Classifier Model
 
 # %%
-input_dim = x_train.shape[1]
+import keras
 
 embedding_layer = model.get_keras_embedding(train_embeddings=False)
-embedding_layer.input_length = INPUT_LENGTH
+# embedding_layer.input_length = INPUT_LENGTH
 
 classifier_keras_model = keras.models.Sequential(
     [
+        keras.layers.InputLayer(input_shape=(100,)),
         embedding_layer,
         keras.layers.Dense(units=16, activation='relu'),
         keras.layers.Flatten(),
@@ -99,14 +100,11 @@ classifier_keras_model = keras.models.Sequential(
 classifier_keras_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 classifier_keras_model.summary()
 
-
 # %%
 history = classifier_keras_model.fit(x_train, y_train, epochs=10, verbose=1, validation_data=(x_val, y_val), batch_size=10)
 
-
 # %%
 classifier_keras_model.save('models/first-steps/classifier(inputl 30, l1units 16, epochs 10, batch_s 10)')
-
 
 # %%
 import matplotlib.pyplot as plt
@@ -118,13 +116,11 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
-
 # %%
 text1 = df['text'].loc[0]
 text1 = to_token_id(text1)
 text1 = keras.preprocessing.sequence.pad_sequences([text1], maxlen=INPUT_LENGTH)
 text1
-
 
 # %%
 classifier_keras_model.predict(text1)
