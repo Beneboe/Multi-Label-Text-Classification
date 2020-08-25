@@ -21,34 +21,17 @@ INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 4
 
-# Import the dataset
-colnames = ['class', 'text', 'description']
-
-# The csv has no header row therefore header=None
-df = pd.read_csv('datasets/first-steps/charcnn_keras.csv', header=None, names=colnames)
-df['text'] = df['text'].astype(pd.StringDtype())
-
-# Join the description column on the text column
-df['text'] = df['text'].str.cat(df['description'], sep=" ")
-
-# Remove the description column
-df = df[['class', 'text']]
-
-# Replace double slashes with a space
-df['text'] = df['text'].str.replace("\\", " ")
+df = pd.read_csv("datasets/charcnn_keras_processed.csv",
+    index_col=0,
+    converters={"text": lambda x: x.strip("[]").replace("'","").split(", ")})
 
 labels = df['class'].to_numpy()
 
 # Get one-hot encoding for each label
 labels = np.eye(CLASS_COUNT, dtype=int)[labels - 1]
 
-def to_token_id(tokens):
-    return [model.vocab[token].index for token in tokens if token in model.vocab]
-
-data = df['text'].apply(to_token_id)
-
 # Make sequences same length
-data = pad_sequences(data, maxlen=INPUT_LENGTH)
+data = pad_sequences(df['text'], maxlen=INPUT_LENGTH)
 
 # Randomize the dataset
 indices = np.arange(data.shape[0])
