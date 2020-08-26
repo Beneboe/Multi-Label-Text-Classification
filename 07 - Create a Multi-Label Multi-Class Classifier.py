@@ -80,14 +80,20 @@ for i in range(CLASS_COUNT):
 # %%
 import matplotlib.pyplot as plt
 
+fig, axs = plt.subplots(2, 2)
+
 for i in range(CLASS_COUNT):
-    plt.plot(histories[i].history['accuracy'])
-    plt.plot(histories[i].history['val_accuracy'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+    ax = axs[i // 2][i % 2]
+    ax.plot(histories[i].history['accuracy'])
+    ax.plot(histories[i].history['val_accuracy'])
+    ax.set_title(f'Classifier {i} Accuracy')
+    ax.set_ylabel('Accuracy')
+    ax.set_xlabel('Epoch')
+    ax.legend(['Train', 'Test'], loc='lower right')
+    ax.grid()
+
+fig.tight_layout()
+plt.show()
 
 # %% [markdown]
 # ## Save the Classifier Models
