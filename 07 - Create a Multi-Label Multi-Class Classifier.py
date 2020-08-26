@@ -36,19 +36,16 @@ data = pad_sequences(df['text'], maxlen=INPUT_LENGTH)
 
 datasets = [None] * CLASS_COUNT
 for i in range(CLASS_COUNT):
-    indices = np.arange(df.shape[0])
-    positive_indices = indices[df['class'] == i + 1]
-    negative_indices = indices[df['class'] != i + 1]
+    positive_samples = data[df['class'] == i + 1]
+    negative_samples = data[df['class'] != i + 1]
     # Subsample negative indices
     if BALANCED:
-        negative_indices = rng.choice(negative_indices, positive_indices.shape[0], replace=False)
+        negative_samples = rng.choice(negative_samples, positive_samples.shape[0], replace=False)
 
-    X_positive = data[positive_indices]
-    X_negative = data[negative_indices]
-    X = np.concatenate((X_positive,X_negative))
+    X = np.concatenate((positive_samples,negative_samples))
 
-    y_positive = np.ones(positive_indices.shape[0], dtype='int32')
-    y_negative = np.zeros(negative_indices.shape[0], dtype='int32')
+    y_positive = np.ones(positive_samples.shape[0], dtype='int32')
+    y_negative = np.zeros(negative_samples.shape[0], dtype='int32')
     y = np.concatenate((y_positive,y_negative))
 
     datasets[i] = train_test_split(
