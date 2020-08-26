@@ -30,16 +30,16 @@ df = pd.read_csv("datasets/charcnn_keras_processed.csv",
 data = pad_sequences(df['text'], maxlen=INPUT_LENGTH)
 
 datasets = [None] * CLASS_COUNT
-for i in range(1, CLASS_COUNT + 1):
+for i in range(CLASS_COUNT):
     indices = np.arange(df.shape[0])
-    positive_indices = indices[df['class'] == i]
-    # negative_indices = indices[df['class'] != i]
+    positive_indices = indices[df['class'] == i + 1]
+    # negative_indices = indices[df['class'] != i + 1]
 
     X = data
     y = np.zeros(data.shape[0])
     y[positive_indices] = 1
 
-    datasets[i - 1] = train_test_split(
+    datasets[i] = train_test_split(
         X, y, test_size=VALIDATION_SPLIT, random_state=42)
 
 # %% [markdown]
@@ -89,4 +89,9 @@ for i in range(CLASS_COUNT):
     plt.legend(['train', 'test'], loc='upper left')
     plt.show()
 
+# %% [markdown]
+# ## Save the Classifier Models
+
 # %%
+for i in range(CLASS_COUNT):
+    classifiers[i].save(f'models/mlmc_classifier{i}')
