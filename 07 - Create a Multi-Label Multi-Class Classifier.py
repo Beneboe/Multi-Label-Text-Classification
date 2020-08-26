@@ -13,14 +13,19 @@ model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/Go
 # ## Prepare the Data Set
 
 # %%
+# Set up hyper parameters
+INPUT_LENGTH = 100
+VALIDATION_SPLIT = 0.2
+CLASS_COUNT = 4
+BALANCED = True
+
+# %%
 import pandas as pd
 import numpy as np
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 
-INPUT_LENGTH = 100
-VALIDATION_SPLIT = 0.2
-CLASS_COUNT = 4
+rng = np.random.default_rng()
 
 df = pd.read_csv("datasets/charcnn_keras_processed.csv",
     index_col=0,
@@ -33,11 +38,18 @@ datasets = [None] * CLASS_COUNT
 for i in range(CLASS_COUNT):
     indices = np.arange(df.shape[0])
     positive_indices = indices[df['class'] == i + 1]
-    # negative_indices = indices[df['class'] != i + 1]
+    negative_indices = indices[df['class'] != i + 1]
+    # Subsample negative indices
+    if BALANCED:
+        negative_indices = rng.choice(negative_indices, positive_indices.shape[0], replace=False)
 
-    X = data
-    y = np.zeros(data.shape[0])
-    y[positive_indices] = 1
+    X_positive = data[positive_indices]
+    X_negative = data[negative_indices]
+    X = np.concatenate((X_positive,X_negative))
+
+    y_positive = np.ones(positive_indices.shape[0], dtype='int32')
+    y_negative = np.zeros(negative_indices.shape[0], dtype='int32')
+    y = np.concatenate((y_positive,y_negative))
 
     datasets[i] = train_test_split(
         X, y, test_size=VALIDATION_SPLIT, random_state=42)
