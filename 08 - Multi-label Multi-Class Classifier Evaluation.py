@@ -1,13 +1,5 @@
 # %% [markdown]
-# # Create a Multi-Label Multi-Class Classifier
-
-# %% [markdown]
-# ## Import the Embedding Layer
-
-# %%
-import gensim
-
-model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/GoogleNews-vectors-negative300.bin.gz", binary=True)
+# # Multi-label Multi-Class Classifier Evaluation
 
 # %% [markdown]
 # ## Prepare the Data Set
@@ -51,6 +43,15 @@ for i in range(CLASS_COUNT):
     datasets[i] = train_test_split(
         X, y, test_size=VALIDATION_SPLIT, random_state=42)
 
+
+# %% [markdown]
+# ## Import the Embedding Layer
+
+# %%
+import gensim
+
+model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/GoogleNews-vectors-negative300.bin.gz", binary=True)
+
 # %% [markdown]
 # ## Define the Classifier Model
 
@@ -86,38 +87,14 @@ classifiers = [None] * CLASS_COUNT
 for i in range(CLASS_COUNT):
     classifiers[i] = SimpleClassifier(embedding_layer)
     classifiers[i].compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    classifiers[i].load_weights(f'models/mlmc_classifier{i}{"balanced" if BALANCED else "unbalanced"}')
     classifiers[i].summary()
 
-# %% [markdown]
-# ## Fit the Classifier Models
+# %%
+from utils.evaluation import evaluate
+from utils.evaluation import accuracy
+from utils.evaluation import count
+_, X_test, _, y_test = datasets[0]
+evaluate(classifiers[0], X_test, y_test, accuracy)
 
 # %%
-histories = [None] * CLASS_COUNT
-for i in range(CLASS_COUNT):
-    X_train, X_test, y_train, y_test = datasets[i]
-    histories[i] = classifiers[i].fit(X_train, y_train, epochs=10, verbose=1, validation_data=(X_test, y_test), batch_size=10)
-
-# %%
-import matplotlib.pyplot as plt
-
-fig, axs = plt.subplots(2, 2)
-
-for i in range(CLASS_COUNT):
-    ax = axs[i // 2][i % 2]
-    ax.plot(histories[i].history['accuracy'])
-    ax.plot(histories[i].history['val_accuracy'])
-    ax.set_title(f'Classifier {i} Accuracy')
-    ax.set_ylabel('Accuracy')
-    ax.set_xlabel('Epoch')
-    ax.legend(['Train', 'Test'], loc='lower right')
-    ax.grid()
-
-fig.tight_layout()
-plt.show()
-
-# %% [markdown]
-# ## Save the Classifier Models
-
-# %%
-for i in range(CLASS_COUNT):
-    classifiers[i].save_weights(f'models/mlmc_classifier{i}{"balanced" if BALANCED else "unbalanced"}')
