@@ -34,7 +34,7 @@ def f1measure(confusion):
     return 2 * (precision(confusion) * recall(confusion)) / (precision(confusion) + recall(confusion))
 
 def evaluate(model, X, y_expected, metric):
-    y_predict = model.predict(X)
+    y_predict = model.predict(X).flatten()
     # step function
     y_predict[y_predict < 0.5] = 0.0
     y_predict[y_predict >= 0.5] = 1.0
