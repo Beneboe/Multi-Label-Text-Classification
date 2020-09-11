@@ -90,11 +90,18 @@ for i in range(CLASS_COUNT):
     classifiers[i].load_weights(f'models/mlmc_classifier{i}{"balanced" if BALANCED else "unbalanced"}')
     classifiers[i].summary()
 
+# %% [markdown]
+# ## Calculate the metrics
+
 # %%
 from utils.evaluation import evaluate
 from utils.evaluation import accuracy
 from utils.evaluation import count
 _, X_test, _, y_test = datasets[0]
 evaluate(classifiers[0], X_test, y_test, accuracy)
+
+# %%
+loss, acc = classifiers[0].evaluate(X_test, y_test, verbose=0)
+acc
 
 # %%

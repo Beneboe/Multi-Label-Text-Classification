@@ -17,7 +17,7 @@ model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/Go
 INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 4
-BALANCED = False
+BALANCED = True
 
 # %%
 import pandas as pd
