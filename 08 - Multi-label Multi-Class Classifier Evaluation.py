@@ -112,13 +112,6 @@ report
 # %%
 import utils.evaluation as mt
 
-def calc_metric(metric_func, i):
-
-    return mt.evaluate(classifiers[i], X_test, y_test, metric_func)
-
-def calc_metrics(f):
-    return np.array([calc_metric(f, i) for i in range(CLASS_COUNT)])
-
 report_data = np.zeros((CLASS_COUNT,), dtype=[
     ("count", "i4"),
     ("accuracy", "f4"),
@@ -172,13 +165,8 @@ for i in range(CLASS_COUNT):
 
 # %%
 
-y_predict = np.zeros(y.shape)
-# Initialize values
-for i in range(CLASS_COUNT):
-    y_predict[:,i] = mt.get_prediction(classifiers[i], X)
+y_predict = mt.get_all_predictions(classifiers, X)
 y_expected = y
 
 print("macro f1 measure:", mt.macro_f1measure(y_predict, y_expected))
 print("micro f1 measure:", mt.micro_f1measure(y_predict, y_expected))
-
-# %%

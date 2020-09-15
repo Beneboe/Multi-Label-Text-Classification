@@ -15,12 +15,17 @@ def get_confusion(y_predict, y_expected) -> Tuple[int, int, int, int]:
 
     return (tp, fp, fn, tn)
 
-
 def get_prediction(model, X):
     y_predict = model.predict(X).flatten()
     # step function
     y_predict[y_predict < 0.5] = 0.0
     y_predict[y_predict >= 0.5] = 1.0
+    return y_predict
+
+def get_all_predictions(models, X):
+    y_predict = np.zeros((X.shape[0],len(models)))
+    for i in range(len(models)):
+        y_predict[:,i] = get_prediction(models[i], X)
     return y_predict
 
 # Metric functions
