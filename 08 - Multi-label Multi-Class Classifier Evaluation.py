@@ -94,14 +94,36 @@ for i in range(CLASS_COUNT):
 # ## Calculate the metrics
 
 # %%
-from utils.evaluation import evaluate
-from utils.evaluation import accuracy
-from utils.evaluation import count
-_, X_test, _, y_test = datasets[0]
-evaluate(classifiers[0], X_test, y_test, accuracy)
+def print_metric(metric_name, value):
+    print("{0:s}:".format(metric_name.capitalize()).ljust(14) + "{0:f}".format(value))
 
 # %%
-loss, acc = classifiers[0].evaluate(X_test, y_test, verbose=0)
-acc
+
+print("Keras Metrics:")
+for i in range(CLASS_COUNT):
+    _, X_test, _, y_test = datasets[i]
+    loss, acc = classifiers[i].evaluate(X_test, y_test, verbose=0)
+
+    print(f"Metrics for classifier {i}:")
+    print_metric("accuracy", acc)
+    print()
+
+# %%
+import utils.evaluation as mt
+
+def calc_metric(metric_func, i):
+    _, X_test, _, y_test = datasets[i]
+    return mt.evaluate(classifiers[i], X_test, y_test, metric_func)
+
+print("Library Metrics:")
+for i in range(CLASS_COUNT):
+    print(f"Metrics for classifier {i}:")
+    print_metric("count", calc_metric(mt.count, i))
+    print_metric("accuracy", calc_metric(mt.accuracy, i))
+    print_metric("recall", calc_metric(mt.recall, i))
+    print_metric("precision", calc_metric(mt.precision, i))
+    print_metric("f1 measure", calc_metric(mt.f1measure, i))
+    print()
+
 
 # %%
