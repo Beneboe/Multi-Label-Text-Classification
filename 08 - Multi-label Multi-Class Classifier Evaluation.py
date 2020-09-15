@@ -110,7 +110,7 @@ report
 # Library Metrics (for each classifier):
 
 # %%
-import utils.evaluation as mt
+import utils.metrics as mt
 
 report_data = np.zeros((CLASS_COUNT,), dtype=[
     ("count", "i4"),
