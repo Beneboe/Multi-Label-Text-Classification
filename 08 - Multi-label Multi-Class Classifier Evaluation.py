@@ -99,7 +99,7 @@ def print_metric(metric_name, value):
 
 # %%
 
-print("Keras Metrics:")
+print("Keras's Metrics:")
 for i in range(CLASS_COUNT):
     _, X_test, _, y_test = datasets[i]
     loss, acc = classifiers[i].evaluate(X_test, y_test, verbose=0)
@@ -115,7 +115,7 @@ def calc_metric(metric_func, i):
     _, X_test, _, y_test = datasets[i]
     return mt.evaluate(classifiers[i], X_test, y_test, metric_func)
 
-print("Library Metrics:")
+print("Library Metrics (for each classifier):")
 for i in range(CLASS_COUNT):
     print(f"Metrics for classifier {i}:")
     print_metric("count", calc_metric(mt.count, i))
@@ -125,5 +125,35 @@ for i in range(CLASS_COUNT):
     print_metric("f1 measure", calc_metric(mt.f1measure, i))
     print()
 
+# %% [markdown]
+# Calculate a new metric test set for the whole.
 
+# %%
+
+# Shape of dataset (unbalanced)
+# all   120 000
+# train  96 000
+# test   24 000
+
+# X_test of dataset[0] can overlap with X_test of dataset[1]
+# Get new test set instead
+
+indices = np.arange(data.shape[0])
+indices = rng.choice(indices, int(indices.shape[0] * VALIDATION_SPLIT), replace=False)
+
+X = data[indices]
+
+y_data = df['class'].to_numpy()[indices]
+y = np.zeros((X_test.shape[0], CLASS_COUNT), dtype='int32')
+for i in range(CLASS_COUNT):
+    ones_of_class = y_data == i + 1
+    y[:,i][ones_of_class] = 1
+
+
+# %%
+
+print("Library Metrics:")
+
+macro_f1 = mt.evaluate_multiple(classifiers, X, y, mt.macro_f1measure)
+print_metric("macro f1 measure", macro_f1)
 # %%

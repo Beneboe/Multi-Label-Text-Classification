@@ -35,14 +35,25 @@ def f1measure(y_predict, y_expected) -> float:
     rc = recall(y_predict, y_expected)
     return 2 * (pr * rc) / (pr + rc)
 
+#
 def macro_f1measure(y_predict, y_expected) -> float:
     class_count = y_expected.T.shape[0]
     f1s = [f1measure(y_predict.T[i], y_expected.T[i]) for i in range(class_count)]
     return np.average(f1s)
 
+def step(array):
+    array[array < 0.5] = 0.0
+    array[array >= 0.5] = 1.0
+
 def evaluate(model, X, y_expected, metric) -> float:
     y_predict = model.predict(X).flatten()
-    # step function
-    y_predict[y_predict < 0.5] = 0.0
-    y_predict[y_predict >= 0.5] = 1.0
+    step(y_predict)
+    return metric(y_predict, y_expected)
+
+def evaluate_multiple(classifiers, X, y_expected, metric) -> float:
+    y_predict = np.zeros((X.shape[0],len(classifiers)))
+    for i in range(len(classifiers)):
+        y_predict[i] = classifiers[i].predict(X).flatten()
+        step(y_predict[i])
+
     return metric(y_predict, y_expected)
