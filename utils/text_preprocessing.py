@@ -1,40 +1,47 @@
 import gensim
 import pandas as pd
 from nltk import word_tokenize
-
-def to_token_id(tokens):
-    return [model.vocab[token].index for token in tokens if token in model.vocab]
+from string import punctuation
 
 # Load the model to get the vocabulary
 model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/GoogleNews-vectors-negative300.bin.gz", binary=True)
 
-# Import the dataset
-colnames = ['class', 'text', 'description']
+def to_token_id(tokens):
+    return [model.vocab[token].index for token in tokens if token in model.vocab]
 
-# The csv has no header row therefore header=None
-df = pd.read_csv('datasets/first-steps/charcnn_keras.csv', header=None, names=colnames)
-df['text'] = df['text'].astype(pd.StringDtype())
+def preprocess(series):
+    # Lowercase the words
+    series = series.str.lower()
 
-# Join the description column on the text column
-df['text'] = df['text'].str.cat(df['description'], sep=" ")
+    # Tokenize the words
+    series = series.map(word_tokenize)
 
-# Remove the description column
-df = df[['class', 'text']]
+    # Remove punctuation characters
+    series = series.map(lambda tokens: [token for token in tokens if token not in punctuation])
 
-# Replace double slashes with a space
-df['text'] = df['text'].str.replace("\\", " ")
+    # Convert words to token ids
+    series = series.apply(to_token_id)
 
-# Lowercase the words
-df['text'] = df['text'].str.lower()
+    return series
 
-# Tokenize the words
-df['text'] = df['text'].map(word_tokenize)
+if __name__ == "__main__":
 
-# Remove punctuation characters
-punctuation = list('()-,.')
-df['text'] = df['text'].map(lambda tokens: [token for token in tokens if token not in punctuation])
+    # Import the dataset
+    colnames = ['class', 'text', 'description']
 
-# Convert words to token ids
-df['text'] = df['text'].apply(to_token_id)
+    # The csv has no header row therefore header=None
+    df = pd.read_csv('datasets/first-steps/charcnn_keras.csv', header=None, names=colnames)
+    df['text'] = df['text'].astype(pd.StringDtype())
 
-df.to_csv("datasets/charcnn_keras_processed.csv")
+    # Join the description column on the text column
+    df['text'] = df['text'].str.cat(df['description'], sep=" ")
+
+    # Remove the description column
+    df = df[['class', 'text']]
+
+    # Replace double slashes with a space
+    df['text'] = df['text'].str.replace("\\", " ")
+
+    df['text'] = preprocess(df['text'])
+
+    df.to_csv("datasets/charcnn_keras_processed.csv")

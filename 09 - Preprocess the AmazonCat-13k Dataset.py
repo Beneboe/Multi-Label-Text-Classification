@@ -1,5 +1,11 @@
 # %% [markdown]
 # # Preprocess the AmazonCat-13k Dataset
+# Setup the hyperparameters
+
+# %%
+CLASS_COUNT = 13330
+
+# %% [markdown]
 # First, load the dataset.
 
 # %%
@@ -33,14 +39,14 @@ for inds in df['target_ind']:
 print("Max ind:", max_ind)
 print("Min ind:", min_ind)
 print("Count (= difference + 1):", max_ind - min_ind + 1)
-print("Count (expected):", 13330)
+print("Count (expected):", CLASS_COUNT)
 
 # %% [markdown]
 # Next, we can calculate the class frequencies.
 
 # %%
 
-freqs = np.zeros((13330,), dtype='int32')
+freqs = np.zeros((CLASS_COUNT,), dtype='int32')
 for inds in df['target_ind']:
     ii = np.array(inds)
     freqs[ii] += 1
@@ -75,5 +81,25 @@ content_lens = vlen(df['content'].to_numpy())
 print("Shortest content length:", content_lens.min())
 print("Longest content length:", content_lens.max())
 print("Average content length:", content_lens.mean())
+
+# %% [markdown]
+# ## Preprocess the Dataset
+
+# %%
+from utils.text_preprocessing import preprocess
+from keras.preprocessing.sequence import pad_sequences
+
+df['title'] = preprocess(df['title'])
+df
+
+# %%
+X = pad_sequences(df['title'], maxlen=50)
+
+def to_full(inds):
+    res = np.zeros((CLASS_COUNT,), dtype='int8')
+    res[numpy.array(inds)] = 1
+    return res
+
+y = df['target_ind'].map(to_full)
 
 # %%
