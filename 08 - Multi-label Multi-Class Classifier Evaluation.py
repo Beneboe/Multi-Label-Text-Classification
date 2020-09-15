@@ -92,41 +92,59 @@ for i in range(CLASS_COUNT):
 
 # %% [markdown]
 # ## Calculate the metrics
-
-# %%
-def print_metric(metric_name, value):
-    print("{0:s}:".format(metric_name.capitalize()).ljust(14) + "{0:f}".format(value))
+# Keras's Metrics:
 
 # %%
 
-print("Keras's Metrics:")
-for i in range(CLASS_COUNT):
+def calc_accuracy(i):
     _, X_test, _, y_test = datasets[i]
     loss, acc = classifiers[i].evaluate(X_test, y_test, verbose=0)
+    return acc
 
-    print(f"Metrics for classifier {i}:")
-    print_metric("accuracy", acc)
-    print()
+report = pd.DataFrame({
+    "accuracy": [calc_accuracy(i) for i in range(CLASS_COUNT)],
+})
+report
+
+# %% [markdown]
+# Library Metrics (for each classifier):
 
 # %%
 import utils.evaluation as mt
 
 def calc_metric(metric_func, i):
-    _, X_test, _, y_test = datasets[i]
+
     return mt.evaluate(classifiers[i], X_test, y_test, metric_func)
 
-print("Library Metrics (for each classifier):")
+def calc_metrics(f):
+    return np.array([calc_metric(f, i) for i in range(CLASS_COUNT)])
+
+report_data = np.zeros((CLASS_COUNT,), dtype=[
+    ("count", "i4"),
+    ("accuracy", "f4"),
+    ("recall", "f4"),
+    ("precision", "f4"),
+    ("f1 measure", "f4"),
+])
+
+# Initialize report data
 for i in range(CLASS_COUNT):
-    print(f"Metrics for classifier {i}:")
-    print_metric("count", calc_metric(mt.count, i))
-    print_metric("accuracy", calc_metric(mt.accuracy, i))
-    print_metric("recall", calc_metric(mt.recall, i))
-    print_metric("precision", calc_metric(mt.precision, i))
-    print_metric("f1 measure", calc_metric(mt.f1measure, i))
-    print()
+    _, X, _, y_expected = datasets[i]
+    y_predict = mt.get_prediction(classifiers[i], X)
+
+    report_data[i] = (
+        mt.count(y_predict, y_expected),
+        mt.accuracy(y_predict, y_expected),
+        mt.recall(y_predict, y_expected),
+        mt.precision(y_predict, y_expected),
+        mt.f1measure(y_predict, y_expected),
+    )
+
+report = pd.DataFrame(report_data)
+report
 
 # %% [markdown]
-# Calculate a new metric test set for the whole.
+# Next, compute a new test set for the metrics that measure the classification as a whole.
 
 # %%
 
@@ -144,16 +162,23 @@ indices = rng.choice(indices, int(indices.shape[0] * VALIDATION_SPLIT), replace=
 X = data[indices]
 
 y_data = df['class'].to_numpy()[indices]
-y = np.zeros((X_test.shape[0], CLASS_COUNT), dtype='int32')
+y = np.zeros((X.shape[0], CLASS_COUNT), dtype='int32')
 for i in range(CLASS_COUNT):
     ones_of_class = y_data == i + 1
     y[:,i][ones_of_class] = 1
 
+# %% [markdown]
+# Library Metrics:
 
 # %%
 
-print("Library Metrics:")
+y_predict = np.zeros(y.shape)
+# Initialize values
+for i in range(CLASS_COUNT):
+    y_predict[:,i] = mt.get_prediction(classifiers[i], X)
+y_expected = y
 
-macro_f1 = mt.evaluate_multiple(classifiers, X, y, mt.macro_f1measure)
-print_metric("macro f1 measure", macro_f1)
+print("macro f1 measure:", mt.macro_f1measure(y_predict, y_expected))
+print("micro f1 measure:", mt.micro_f1measure(y_predict, y_expected))
+
 # %%
