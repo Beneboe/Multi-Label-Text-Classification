@@ -5,6 +5,7 @@
 # %%
 CLASS_COUNT = 13330
 DATASET_TYPE = 'trn'
+CUTOFF = 2 # inclusive
 
 # %% [markdown]
 # First, load the dataset.
@@ -40,7 +41,7 @@ print("Count (= difference + 1):", max_ind - min_ind + 1)
 print("Count (expected):", CLASS_COUNT)
 
 # %% [markdown]
-# Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and insance class counts.
+# Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
 
 # %%
 
@@ -85,10 +86,40 @@ pd.DataFrame(ds_stats, index=ds_stats_index)
 from utils.text_preprocessing import preprocess
 from keras.preprocessing.sequence import pad_sequences
 
-df_processed = pd.DataFrame({
-    'X': preprocess(df['title']),
-    'y': df['target_ind']
-})
+X = preprocess(df['title'])
+y = df['target_ind']
+
+# %% [markdown]
+# Next, we can calculate the text lengths (again).
+
+# %%
+text_lens = vlen(X)
+ds_stats_index.append('token lengths')
+ds_stats.append(stats(text_lens))
+pd.DataFrame(ds_stats, index=ds_stats_index)
+
+# %% [markdown]
+# Cut off instances with not enough tokens.
+
+# %%
+print('Instances with less than or equal to {0} tokens get cut off.'.format(CUTOFF))
+count = np.count_nonzero(text_lens <= CUTOFF)
+print('This amounts to {0} instance ({1:.2%}).'.format(
+    count, count / text_lens.shape[0]))
+
+# Cutoff
+indices = np.arange(X.shape[0])[text_lens > CUTOFF]
+X = X[indices]
+y = y[indices]
+
+# %%
+text_lens = vlen(X)
+ds_stats_index.append('token lengths (after cutoff)')
+ds_stats.append(stats(text_lens))
+pd.DataFrame(ds_stats, index=ds_stats_index)
+
+# %%
+df_processed = pd.DataFrame({ 'X': X, 'y': y })
 df_processed
 
 # %% [markdown]
@@ -96,11 +127,3 @@ df_processed
 
 # %%
 df_processed.to_json(f'datasets/AmazonCat13K.{DATASET_TYPE}.json', orient='records', lines=True)
-
-# %% [markdown]
-# Next, we can calculate the text lengths (again).
-
-# %%
-ds_stats_index.append('token lengths')
-ds_stats.append(stats(vlen(df_processed['X'])))
-pd.DataFrame(ds_stats, index=ds_stats_index)
