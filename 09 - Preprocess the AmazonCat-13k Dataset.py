@@ -13,10 +13,7 @@ DATASET_TYPE = 'trn'
 import pandas as pd
 from nltk import word_tokenize
 
-df = pd.read_json(
-    f'datasets/AmazonCat13K/{DATASET_TYPE}.json',
-    lines=True,
-)
+df = pd.read_json(f'datasets/AmazonCat13K/{DATASET_TYPE}.json', lines=True)
 df
 
 # %% [markdown]

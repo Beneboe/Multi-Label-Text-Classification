@@ -1,15 +1,16 @@
 # %% [markdown]
 # # Multi-label Multi-Class Classifier Evaluation
-
-# %% [markdown]
-# ## Prepare the Data Set
+# First, setup the hyperparameters.
 
 # %%
-# Set up hyper parameters
 INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 4
 BALANCED = False
+
+
+# %% [markdown]
+# ## Prepare the Data Set
 
 # %%
 import pandas as pd
