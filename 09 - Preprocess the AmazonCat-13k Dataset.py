@@ -40,62 +40,43 @@ print("Count (= difference + 1):", max_ind - min_ind + 1)
 print("Count (expected):", CLASS_COUNT)
 
 # %% [markdown]
-# Next, we can calculate the class frequencies.
+# Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and insance class counts.
 
 # %%
 
-freqs = np.zeros((CLASS_COUNT,), dtype='int32')
+def stats(a):
+    return {
+        'max': a.max(),
+        'min': a.min(),
+        'mean': a.mean(),
+        'max count': np.count_nonzero(a == a.max()),
+        'min count': np.count_nonzero(a == a.min()),
+        'mean count': np.count_nonzero(a == np.round(a.mean())),
+        'max arg': a.argmax(),
+        'min arg': a.argmin(),
+    }
+
+vlen = np.vectorize(len)
+
+class_freqs = np.zeros((CLASS_COUNT,), dtype='int32')
 for inds in df['target_ind']:
     ii = np.array(inds)
-    freqs[ii] += 1
+    class_freqs[ii] += 1
 
-ma = freqs.argmax()
-print("Most frequent ind:", ma)
-print("Most frequent ind (count):", freqs[ma])
+ds_stats_index = [
+    'class frequencies',
+    'title char lengths',
+    'content char lengths',
+    'instance class count',
+]
+ds_stats = [
+    stats(class_freqs),
+    stats(vlen(df['title'].to_numpy())),
+    stats(vlen(df['content'].to_numpy())),
+    stats(df['target_ind'].map(len)),
+]
 
-print()
-
-mi = freqs.argmin()
-print("Least frequent ind:", mi)
-print("Least frequent ind (count):", freqs[mi])
-
-print()
-
-print("Mean frequency:", freqs.mean())
-
-del freqs
-
-# %% [markdown]
-# Next, we can calculate the text lengths.
-
-# %%
-vlen = np.vectorize(len)
-title_lens = vlen(df['title'].to_numpy())
-print("Shortest title length:", title_lens.min())
-print("Longest title length:", title_lens.max())
-print("Average title length:", title_lens.mean())
-
-del title_lens
-print()
-
-content_lens = vlen(df['content'].to_numpy())
-print("Shortest content length:", content_lens.min())
-print("Longest content length:", content_lens.max())
-print("Average content length:", content_lens.mean())
-
-del content_lens
-
-# %% [markdown]
-# Next, we can calculate the number of classes for each instance.
-
-# %%
-lens = df['target_ind'].map(len)
-
-print("Average number of classes:", lens.mean())
-print("Maximum number of classes:", lens.max())
-print("Minimum number of classes:", lens.min())
-
-del lens
+pd.DataFrame(ds_stats, index=ds_stats_index)
 
 # %% [markdown]
 # ## Preprocess the Dataset
@@ -120,17 +101,6 @@ df_processed.to_json(f'datasets/AmazonCat13K.{DATASET_TYPE}.json', orient='recor
 # Next, we can calculate the text lengths (again).
 
 # %%
-vlen = np.vectorize(len)
-lens = vlen(df_processed['X'])
-print("Shortest text length:", lens.min())
-c = np.count_nonzero(lens == lens.min())
-print("Shortest text length (count):", c)
-print("Shortest text length (portion):", c / lens.shape[0])
-print("Longest text length:", lens.max())
-print("Longest text length (count):", np.count_nonzero(lens == lens.max()))
-print("Average text length:", lens.mean())
-print("Average text length (count):", np.count_nonzero(lens == np.round(lens.mean())))
-
-del lens
-
-# %%
+ds_stats_index.append('token lengths')
+ds_stats.append(stats(vlen(df_processed['X'])))
+pd.DataFrame(ds_stats, index=ds_stats_index)
