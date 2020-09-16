@@ -34,6 +34,7 @@ def get_dataset(i):
 
     X = np.concatenate((positive_samples,negative_samples))
 
+    # TODO: Update text
     y_positive = np.ones(positive_samples.shape[0], dtype='int32')
     y_negative = np.zeros(negative_samples.shape[0], dtype='int32')
     y = np.concatenate((y_positive,y_negative))
@@ -86,16 +87,23 @@ def weights_file_name(i):
     return f'models/amazon/mlmc_classifier{i}{"balanced" if BALANCED else "unbalanced"}'
 
 def train_classifier(i):
+    # Create the classifier
     classifier = SimpleClassifier(embedding_layer)
     classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     classifier.summary()
+    # Get the dataset
     X_train, X_test, y_train, y_test = get_dataset(i)
+    # TODO: Save the dataset
+    # Train the classifier
     history = classifier.fit(X_train, y_train, epochs=10, verbose=1, validation_data=(X_test, y_test), batch_size=10)
+    # TODO: Store the history
+    # Save the weights
     classifier.save_weights(weights_file_name(i))
+    # TODO: Calculate the metrics
 
 # %% [markdown]
 # Actually train the classifiers.
 
 # %%
-for i in range(CLASS_COUNT):
+for i in range(100):
     train_classifier(i)
