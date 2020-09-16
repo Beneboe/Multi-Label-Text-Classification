@@ -23,20 +23,25 @@ rng = np.random.default_rng()
 df = pd.read_json(f'datasets/AmazonCat13K.{DATASET_TYPE}.json', lines=True)
 
 # Make sequences same length
-data = pad_sequences(df['text'], maxlen=INPUT_LENGTH)
+data = pad_sequences(df['X'], maxlen=INPUT_LENGTH)
+
+def is_positive(i):
+    return lambda y: i in y
+
+def is_negative(i):
+    return lambda y: i not in y
 
 def get_dataset(i):
-    positive_samples = data[df['class'] == i + 1]
-    negative_samples = data[df['class'] != i + 1]
+    X_positive = data[df['y'].map(is_positive(i))]
+    X_negative = data[df['y'].map(is_negative(i))]
     # Subsample negative indices
     if BALANCED:
-        negative_samples = rng.choice(negative_samples, positive_samples.shape[0], replace=False)
+        X_negative = rng.choice(X_negative, X_positive.shape[0], replace=False)
 
-    X = np.concatenate((positive_samples,negative_samples))
+    y_positive = np.ones(X_positive.shape[0], dtype='int8')
+    y_negative = np.zeros(X_negative.shape[0], dtype='int8')
 
-    # TODO: Update text
-    y_positive = np.ones(positive_samples.shape[0], dtype='int32')
-    y_negative = np.zeros(negative_samples.shape[0], dtype='int32')
+    X = np.concatenate((X_positive,X_negative))
     y = np.concatenate((y_positive,y_negative))
 
     return train_test_split(X, y, test_size=VALIDATION_SPLIT, random_state=42)

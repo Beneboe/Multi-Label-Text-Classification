@@ -104,7 +104,7 @@ pd.DataFrame(ds_stats, index=ds_stats_index)
 # %%
 print('Instances with less than or equal to {0} tokens get cut off.'.format(CUTOFF))
 count = np.count_nonzero(text_lens <= CUTOFF)
-print('This amounts to {0} instance ({1:.2%}).'.format(
+print('This amounts to {0} instances ({1:.2%}).'.format(
     count, count / text_lens.shape[0]))
 
 # Cutoff
