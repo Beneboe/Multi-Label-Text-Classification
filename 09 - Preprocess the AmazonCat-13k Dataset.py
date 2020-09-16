@@ -4,6 +4,7 @@
 
 # %%
 CLASS_COUNT = 13330
+DATASET_TYPE = 'trn'
 
 # %% [markdown]
 # First, load the dataset.
@@ -13,7 +14,7 @@ import pandas as pd
 from nltk import word_tokenize
 
 df = pd.read_json(
-    'datasets/AmazonCat13K/tst.json',
+    f'datasets/AmazonCat13K/{DATASET_TYPE}.json',
     lines=True,
 )
 df
@@ -65,6 +66,8 @@ print()
 
 print("Mean frequency:", freqs.mean())
 
+del freqs
+
 # %% [markdown]
 # Next, we can calculate the text lengths.
 
@@ -75,12 +78,27 @@ print("Shortest title length:", title_lens.min())
 print("Longest title length:", title_lens.max())
 print("Average title length:", title_lens.mean())
 
+del title_lens
 print()
 
 content_lens = vlen(df['content'].to_numpy())
 print("Shortest content length:", content_lens.min())
 print("Longest content length:", content_lens.max())
 print("Average content length:", content_lens.mean())
+
+del content_lens
+
+# %% [markdown]
+# Next, we can calculate the number of classes for each instance.
+
+# %%
+lens = df['target_ind'].map(len)
+
+print("Average number of classes:", lens.mean())
+print("Maximum number of classes:", lens.max())
+print("Minimum number of classes:", lens.min())
+
+del lens
 
 # %% [markdown]
 # ## Preprocess the Dataset
@@ -89,17 +107,33 @@ print("Average content length:", content_lens.mean())
 from utils.text_preprocessing import preprocess
 from keras.preprocessing.sequence import pad_sequences
 
-df['title'] = preprocess(df['title'])
-df
+df_processed = pd.DataFrame({
+    'X': preprocess(df['title']),
+    'y': df['target_ind']
+})
+df_processed
+
+# %% [markdown]
+# Save the dataset
 
 # %%
-X = pad_sequences(df['title'], maxlen=50)
+df_processed.to_json(f'datasets/AmazonCat13K.{DATASET_TYPE}.json', orient='records', lines=True)
 
-def to_full(inds):
-    res = np.zeros((CLASS_COUNT,), dtype='int8')
-    res[numpy.array(inds)] = 1
-    return res
+# %% [markdown]
+# Next, we can calculate the text lengths (again).
 
-y = df['target_ind'].map(to_full)
+# %%
+vlen = np.vectorize(len)
+lens = vlen(df_processed['X'])
+print("Shortest text length:", lens.min())
+c = np.count_nonzero(lens == lens.min())
+print("Shortest text length (count):", c)
+print("Shortest text length (portion):", c / lens.shape[0])
+print("Longest text length:", lens.max())
+print("Longest text length (count):", np.count_nonzero(lens == lens.max()))
+print("Average text length:", lens.mean())
+print("Average text length (count):", np.count_nonzero(lens == np.round(lens.mean())))
+
+del lens
 
 # %%
