@@ -7,9 +7,9 @@ INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
 BALANCED = True
-WEIGHTS_FILE_TEMPLATE = f'models/amazon/cl_bal={0}_class={{1}}'.format('1' if BALANCED else '0')
-HISTORY_FILE_TEMPLATE = f'history/amazon/cl_bal={0}_class={{1}}'.format('1' if BALANCED else '0')
-METRICS_FILE_TEMPLATE = f'metrics/amazon/cl_bal={0}_class={{1}}'.format('1' if BALANCED else '0')
+WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
+HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
+METRICS_FILE_TEMPLATE = 'results/metrics/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
 
 # %% [markdown]
 # Import the dataset
@@ -39,9 +39,9 @@ def is_positive(i):
 def is_negative(i):
     return lambda y: i not in y
 
-def get_dataset(i):
-    X_positive = X_train[y_train.map(is_positive(i))]
-    X_negative = X_train[y_train.map(is_negative(i))]
+def get_dataset(X, y, i):
+    X_positive = X[y.map(is_positive(i))]
+    X_negative = X[y.map(is_negative(i))]
     # Subsample negative indices
     if BALANCED:
         X_negative = rng.choice(X_negative, X_positive.shape[0], replace=False)
@@ -52,7 +52,7 @@ def get_dataset(i):
     X = np.concatenate((X_positive,X_negative))
     y = np.concatenate((y_positive,y_negative))
 
-    return train_test_split(X, y, test_size=VALIDATION_SPLIT, random_state=42)
+    return X, y
 
 # %% [markdown]
 # ## Define the Classifier Model
