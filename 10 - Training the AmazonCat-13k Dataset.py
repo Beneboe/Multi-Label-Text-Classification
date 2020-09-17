@@ -6,8 +6,10 @@
 INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
-BALANCED = False
-DATASET_TYPE = 'tst'
+BALANCED = True
+WEIGHTS_FILE_TEMPLATE = f'models/amazon/cl_bal={0}_class={{1}}'.format('1' if BALANCED else '0')
+HISTORY_FILE_TEMPLATE = f'history/amazon/cl_bal={0}_class={{1}}'.format('1' if BALANCED else '0')
+METRICS_FILE_TEMPLATE = f'metrics/amazon/cl_bal={0}_class={{1}}'.format('1' if BALANCED else '0')
 
 # %% [markdown]
 # Import the dataset
@@ -20,11 +22,17 @@ from sklearn.model_selection import train_test_split
 
 rng = np.random.default_rng()
 
-df = pd.read_json(f'datasets/AmazonCat13K.{DATASET_TYPE}.json', lines=True)
+def import_dataset(path):
+    ds_frame = pd.read_json(path, lines=True)
+    # Make sequences same length
+    X = pad_sequences(ds_frame['X'], maxlen=INPUT_LENGTH)
+    y = ds_frame['y']
+    return X, y
 
-# Make sequences same length
-data = pad_sequences(df['X'], maxlen=INPUT_LENGTH)
+X_train, y_train = import_dataset(f'datasets/AmazonCat13K.trn.json')
+X_test, y_test = import_dataset(f'datasets/AmazonCat13K.tst.json')
 
+# %%
 def is_positive(i):
     return lambda y: i in y
 
@@ -32,8 +40,8 @@ def is_negative(i):
     return lambda y: i not in y
 
 def get_dataset(i):
-    X_positive = data[df['y'].map(is_positive(i))]
-    X_negative = data[df['y'].map(is_negative(i))]
+    X_positive = X_train[y_train.map(is_positive(i))]
+    X_negative = X_train[y_train.map(is_negative(i))]
     # Subsample negative indices
     if BALANCED:
         X_negative = rng.choice(X_negative, X_positive.shape[0], replace=False)
@@ -87,28 +95,47 @@ embedding_layer = model.get_keras_embedding(train_embeddings=False)
 # Define the steps.
 
 # %%
+import utils.metrics as mt
+import json
 
-def weights_file_name(i):
-    return f'models/amazon/mlmc_classifier{i}{"balanced" if BALANCED else "unbalanced"}'
+def get_metrics(classifier, X, y_expected):
+    y_predict = mt.get_prediction(classifier, X)
 
-def train_classifier(i):
+    return {
+        'count': mt.count(y_predict, y_expected),
+        'accuracy': mt.accuracy(y_predict, y_expected),
+        'recall': mt.recall(y_predict, y_expected),
+        'precision': mt.precision(y_predict, y_expected),
+        'f1 measure': mt.f1measure(y_predict, y_expected),
+    }
+
+def process_classifier(i):
+    print(f'Processing classifier {i}...')
     # Create the classifier
     classifier = SimpleClassifier(embedding_layer)
-    classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy','recall','precision'])
     classifier.summary()
     # Get the dataset
-    X_train, X_test, y_train, y_test = get_dataset(i)
+    X_train, X_train_test, y_train, y_train_test = get_dataset(i)
     # TODO: Save the dataset
     # Train the classifier
-    history = classifier.fit(X_train, y_train, epochs=10, verbose=1, validation_data=(X_test, y_test), batch_size=10)
-    # TODO: Store the history
+    history = classifier.fit(X_train, y_train, epochs=10, verbose=1, validation_data=(X_train_test, y_train_test), batch_size=10)
     # Save the weights
-    classifier.save_weights(weights_file_name(i))
-    # TODO: Calculate the metrics
+    classifier.save_weights(WEIGHTS_FILE_TEMPLATE.format(i))
+    # Calculate the metrics
+    # metrics = get_metrics(classifier, ???, ???)
+    metrics = classifier.evaluate(X_train, y_test, return_dict=True)
+    # Store the history
+    with open(HISTORY_FILE_TEMPLATE, 'w') as fp:
+        json.dump(history.history, fp)
+    # Store the metrics
+    with open(METRICS_FILE_TEMPLATE, 'w') as fp:
+        json.dump(metrics, fp)
 
 # %% [markdown]
 # Actually train the classifiers.
 
 # %%
-for i in range(100):
-    train_classifier(i)
+# TODO: Update number
+for i in range(CLASS_COUNT):
+    process_classifier(i)
