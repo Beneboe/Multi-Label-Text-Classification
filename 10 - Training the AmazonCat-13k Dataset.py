@@ -96,6 +96,7 @@ embedding_layer = model.get_keras_embedding(train_embeddings=False)
 
 # %%
 import utils.metrics as mt
+import keras.metrics as kmt
 import json
 
 def get_metrics(classifier, X, y_expected):
@@ -113,18 +114,24 @@ def process_classifier(i):
     print(f'Processing classifier {i}...')
     # Create the classifier
     classifier = SimpleClassifier(embedding_layer)
-    classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy','recall','precision'])
+    classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
+        kmt.Accuracy(),
+        kmt.Recall(),
+        kmt.Precision(),
+    ])
     classifier.summary()
     # Get the dataset
-    X_train, X_train_test, y_train, y_train_test = get_dataset(i)
+    Xi, yi = get_dataset(X_train, y_train, i)
+    Xi_train, Xi_train_test, yi_train, yi_train_test = train_test_split(Xi, yi, test_size=VALIDATION_SPLIT, random_state=42)
     # TODO: Save the dataset
     # Train the classifier
-    history = classifier.fit(X_train, y_train, epochs=10, verbose=1, validation_data=(X_train_test, y_train_test), batch_size=10)
+    history = classifier.fit(Xi_train, yi_train, epochs=10, verbose=1, validation_data=(Xi_train_test, yi_train_test), batch_size=10)
     # Save the weights
     classifier.save_weights(WEIGHTS_FILE_TEMPLATE.format(i))
     # Calculate the metrics
+    Xi_test, yi_test = get_dataset(X_test, y_test, i)
     # metrics = get_metrics(classifier, ???, ???)
-    metrics = classifier.evaluate(X_train, y_test, return_dict=True)
+    metrics = classifier.evaluate(Xi_test, yi_test, return_dict=True)
     # Store the history
     with open(HISTORY_FILE_TEMPLATE, 'w') as fp:
         json.dump(history.history, fp)
@@ -136,6 +143,5 @@ def process_classifier(i):
 # Actually train the classifiers.
 
 # %%
-# TODO: Update number
 for i in range(CLASS_COUNT):
     process_classifier(i)

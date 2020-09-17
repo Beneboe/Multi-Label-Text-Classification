@@ -6,7 +6,7 @@
 CLASS_COUNT = 13330
 DATASET_TYPE = 'trn'
 # CUTOFF is inclusive
-CUTOFF = 2
+CUTOFF = 2 if DATASET_TYPE == 'trn' else 0
 
 # %% [markdown]
 # First, load the dataset.
