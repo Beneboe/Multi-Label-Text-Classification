@@ -42,45 +42,6 @@ print("Count (= difference + 1):", max_ind - min_ind + 1)
 print("Count (expected):", CLASS_COUNT)
 
 # %% [markdown]
-# Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
-
-# %%
-
-def stats(a):
-    return {
-        'max': a.max(),
-        'min': a.min(),
-        'mean': a.mean(),
-        'max count': np.count_nonzero(a == a.max()),
-        'min count': np.count_nonzero(a == a.min()),
-        'mean count': np.count_nonzero(a == np.round(a.mean())),
-        'max arg': a.argmax(),
-        'min arg': a.argmin(),
-    }
-
-vlen = np.vectorize(len)
-
-class_freqs = np.zeros((CLASS_COUNT,), dtype='int32')
-for inds in df['target_ind']:
-    ii = np.array(inds)
-    class_freqs[ii] += 1
-
-ds_stats_index = [
-    'class frequencies',
-    'title char lengths',
-    'content char lengths',
-    'instance class count',
-]
-ds_stats = [
-    stats(class_freqs),
-    stats(vlen(df['title'].to_numpy())),
-    stats(vlen(df['content'].to_numpy())),
-    stats(df['target_ind'].map(len)),
-]
-
-pd.DataFrame(ds_stats, index=ds_stats_index)
-
-# %% [markdown]
 # ## Preprocess the Dataset
 
 # %%
@@ -91,12 +52,32 @@ X = preprocess(df['title'])
 y = df['target_ind']
 
 # %% [markdown]
-# Next, we can calculate the text lengths (again).
+# Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
 
 # %%
+from utils.dataset import var_stats, class_frequencies
+
+vlen = np.vectorize(len)
 token_lens = vlen(X)
+
+ds_stats_index = []
+ds_stats = []
+
+ds_stats_index.append('class frequencies')
+ds_stats.append(var_stats(class_frequencies(CLASS_COUNT, df['target_ind'])))
+
+ds_stats_index.append('title char lengths')
+ds_stats.append(var_stats(vlen(df['title'])))
+
+ds_stats_index.append('content char lengths')
+ds_stats.append(var_stats(vlen(df['content'])))
+
+ds_stats_index.append('instance class count')
+ds_stats.append(var_stats(df['target_ind'].map(len)))
+
 ds_stats_index.append('token lengths')
-ds_stats.append(stats(token_lens))
+ds_stats.append(var_stats(token_lens))
+
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
 # %% [markdown]
@@ -113,10 +94,21 @@ indices = np.arange(X.shape[0])[token_lens > CUTOFF]
 X = X[indices]
 y = y[indices]
 
+# %% [markdown]
+# Calculate the metrics after the cutoff.
+
 # %%
 token_lens = vlen(X)
+
+ds_stats_index.append('class frequencies (after cutoff)')
+ds_stats.append(var_stats(class_frequencies(CLASS_COUNT, y)))
+
+ds_stats_index.append('instance class count (after cutoff)')
+ds_stats.append(var_stats(y.map(len)))
+
 ds_stats_index.append('token lengths (after cutoff)')
-ds_stats.append(stats(token_lens))
+ds_stats.append(var_stats(token_lens))
+
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
 # %%

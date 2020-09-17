@@ -8,8 +8,8 @@ VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
 BALANCED = True
 WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
-HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
-METRICS_FILE_TEMPLATE = 'results/metrics/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
+HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
+METRICS_FILE_TEMPLATE = 'results/metrics/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
 
 # %% [markdown]
 # Import the dataset
