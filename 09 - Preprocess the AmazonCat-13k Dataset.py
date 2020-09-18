@@ -44,6 +44,53 @@ print("Count (= difference + 1):", max_ind - min_ind + 1)
 print("Count (expected):", CLASS_COUNT)
 
 # %% [markdown]
+# Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
+
+# %%
+from utils.dataset import var_stats, class_frequencies
+
+vlen = np.vectorize(len)
+
+ds_stats_index = []
+ds_stats = []
+
+freqs = class_frequencies(CLASS_COUNT, df['target_ind'])
+ds_stats_index.append('class frequencies')
+ds_stats.append(var_stats(freqs))
+
+ds_stats_index.append('title char lengths')
+ds_stats.append(var_stats(vlen(df['title'])))
+
+ds_stats_index.append('content char lengths')
+ds_stats.append(var_stats(vlen(df['content'])))
+
+ds_stats_index.append('instance class count')
+ds_stats.append(var_stats(df['target_ind'].map(len)))
+
+pd.DataFrame(ds_stats, index=ds_stats_index)
+
+# %% [markdown]
+# Create a boxplot for the frequencies.
+
+# %%
+import matplotlib.pyplot as plt
+
+fig1, ax1 = plt.subplots()
+ax1.set_title('Class frequencies')
+ax1.boxplot(freqs)
+
+# %% [markdown]
+# Create a historgram for the frequencies.
+
+# %%
+sorted = np.sort(freqs)
+
+fig2, ax2 = plt.subplots()
+ax2.set_title('Class frequencies')
+plt.yscale('log')
+ax2.bar(np.arange(sorted.shape[0]), sorted)
+
+# %% [markdown]
 # ## Preprocess the Dataset
 
 # %%
@@ -54,28 +101,10 @@ X = preprocess(df['title'])
 y = df['target_ind']
 
 # %% [markdown]
-# Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
+# Next, we can calculate the statistics for the token lengths.
 
 # %%
-from utils.dataset import var_stats, class_frequencies
-
-vlen = np.vectorize(len)
 token_lens = vlen(X)
-
-ds_stats_index = []
-ds_stats = []
-
-ds_stats_index.append('class frequencies')
-ds_stats.append(var_stats(class_frequencies(CLASS_COUNT, df['target_ind'])))
-
-ds_stats_index.append('title char lengths')
-ds_stats.append(var_stats(vlen(df['title'])))
-
-ds_stats_index.append('content char lengths')
-ds_stats.append(var_stats(vlen(df['content'])))
-
-ds_stats_index.append('instance class count')
-ds_stats.append(var_stats(df['target_ind'].map(len)))
 
 ds_stats_index.append('token lengths')
 ds_stats.append(var_stats(token_lens))
