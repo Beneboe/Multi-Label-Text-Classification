@@ -6,6 +6,7 @@
 INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
+# CLASS_COUNT = 30
 BALANCED = True
 WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
 HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
@@ -20,7 +21,6 @@ TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 import pandas as pd
 import numpy as np
 from keras.preprocessing.sequence import pad_sequences
-from sklearn.model_selection import train_test_split
 
 rng = np.random.default_rng()
 
@@ -97,8 +97,10 @@ embedding_layer = model.get_keras_embedding(train_embeddings=False)
 # Define the steps.
 
 # %%
+from sklearn.model_selection import train_test_split
 import utils.metrics as mt
 import keras.metrics as kmt
+
 import json
 
 def get_metrics(classifier, X, y_expected):
@@ -122,28 +124,41 @@ def process_classifier(i):
         kmt.Precision(),
     ])
     classifier.summary()
+
     # Get the dataset
     Xi, yi = get_dataset(X_train, y_train, i)
-    Xi_train, Xi_train_test, yi_train, yi_train_test = train_test_split(Xi, yi, test_size=VALIDATION_SPLIT, random_state=42)
-    # TODO: Save the dataset
-    # Train the classifier
-    history = classifier.fit(Xi_train, yi_train, epochs=10, verbose=1, validation_data=(Xi_train_test, yi_train_test), batch_size=10)
+
+    # Only split and train dataset if there is enough data
+    if Xi.shape[0] > 2:
+        # Split the dataset
+        Xi_train, Xi_train_test, yi_train, yi_train_test = train_test_split(
+            Xi, yi, test_size=VALIDATION_SPLIT, random_state=42)
+
+        # Train the classifier
+        history = classifier.fit(Xi_train, yi_train, epochs=10, verbose=1, validation_data=(Xi_train_test, yi_train_test), batch_size=10)
+
+        # Store the history
+        with open(HISTORY_FILE_TEMPLATE.format(i), 'w') as fp:
+            json.dump(history.history, fp)
+
     # Save the weights
     classifier.save_weights(WEIGHTS_FILE_TEMPLATE.format(i))
+
     # Calculate the metrics
     Xi_test, yi_test = get_dataset(X_test, y_test, i)
     # metrics = get_metrics(classifier, ???, ???)
     metrics = classifier.evaluate(Xi_test, yi_test, return_dict=True)
-    # Store the history
-    with open(HISTORY_FILE_TEMPLATE, 'w') as fp:
-        json.dump(history.history, fp)
+
     # Store the metrics
-    with open(METRICS_FILE_TEMPLATE, 'w') as fp:
+    with open(METRICS_FILE_TEMPLATE.format(i), 'w') as fp:
         json.dump(metrics, fp)
 
 # %% [markdown]
 # Actually train the classifiers.
 
 # %%
-for i in range(CLASS_COUNT):
-    process_classifier(i)
+# for i in range(CLASS_COUNT):
+#     process_classifier(i)
+
+# %%
+process_classifier(81)

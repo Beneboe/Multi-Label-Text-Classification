@@ -13,8 +13,8 @@
 
 Ensure that the project folder has the following directory structure:
 
-- datasets
-  - AmazonCat-13K
+- datasets/
+  - AmazonCat-13K/
     - tst.json
     - trn.json
   - GoogleNews-vectors-negative.bin.gz
@@ -39,6 +39,15 @@ Ensure that the project folder has the following directory structure:
 
 Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
 
+## Sample Classes that Occur at least 10,000 times
+
+- 35 "18th century"
+- 38 "19th century"
+- 39 "20th century"
+- 49 "21st century"
+- 81 "accessories" (28555 occurences)
+- 5960 "home improvement"
+
 ## Todos
 
 ### Todo 17-09
@@ -51,6 +60,6 @@ Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
 
 ### Todo 18-09
 
-- [ ] Solve issue where there are classes that never occur in trn.json because of cutoff
+- [x] Solve issue where there are classes that never occur in trn.json because of cutoff
 - [ ] Investigate (potential) low accuracy issue
-- [ ] Write handover protocol
+- [x] Write handover protocol
