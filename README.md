@@ -53,7 +53,7 @@ Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
 ### Todo 17-09
 
 - [x] Create a test file for the metrics file
-- [ ] Generate a develop dataset
+- [x] Generate a develop dataset
 - [x] Implement missing steps in train function
 - [x] Do a test run
 - [x] After the cutoff calculate the statistics again
@@ -61,5 +61,5 @@ Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
 ### Todo 18-09
 
 - [x] Solve issue where there are classes that never occur in trn.json because of cutoff
-- [ ] Investigate (potential) low accuracy issue
+- [x] Investigate (potential) low accuracy issue
 - [x] Write handover protocol

@@ -13,6 +13,7 @@ HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}.json'.format('1'
 METRICS_FILE_TEMPLATE = 'results/metrics/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
 TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
 TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
+EPOCHS = 10
 
 # %% [markdown]
 # Import the dataset
@@ -119,7 +120,7 @@ def process_classifier(i):
     # Create the classifier
     classifier = SimpleClassifier(embedding_layer)
     classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
-        kmt.Accuracy(),
+        'accuracy',
         kmt.Recall(),
         kmt.Precision(),
     ])
@@ -135,7 +136,8 @@ def process_classifier(i):
             Xi, yi, test_size=VALIDATION_SPLIT, random_state=42)
 
         # Train the classifier
-        history = classifier.fit(Xi_train, yi_train, epochs=10, verbose=1, validation_data=(Xi_train_test, yi_train_test), batch_size=10)
+        history = classifier.fit(Xi_train, yi_train,
+            epochs=EPOCHS, verbose=1, validation_data=(Xi_train_test, yi_train_test), batch_size=20)
 
         # Store the history
         with open(HISTORY_FILE_TEMPLATE.format(i), 'w') as fp:
@@ -146,8 +148,8 @@ def process_classifier(i):
 
     # Calculate the metrics
     Xi_test, yi_test = get_dataset(X_test, y_test, i)
-    # metrics = get_metrics(classifier, ???, ???)
-    metrics = classifier.evaluate(Xi_test, yi_test, return_dict=True)
+    metrics = get_metrics(classifier, Xi_test, yi_test)
+    # metrics = classifier.evaluate(Xi_test, yi_test, return_dict=True)
 
     # Store the metrics
     with open(METRICS_FILE_TEMPLATE.format(i), 'w') as fp:
@@ -157,8 +159,8 @@ def process_classifier(i):
 # Actually train the classifiers.
 
 # %%
-# for i in range(CLASS_COUNT):
-#     process_classifier(i)
+for i in range(CLASS_COUNT):
+    process_classifier(i)
 
 # %%
-process_classifier(81)
+# process_classifier(81)
