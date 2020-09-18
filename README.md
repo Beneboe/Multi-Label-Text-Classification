@@ -19,12 +19,25 @@ Ensure that the project folder has the following directory structure:
     - trn.json
   - GoogleNews-vectors-negative.bin.gz
 
-Look for the `DATASET_TYPE` variable at the top of the file. To preprocess the train set change it to `'trn'`, for the test set change it to `'tst'`.
+Where datasets folder contains the extracted archive files. Before running the script look for the `DATASET_TYPE` variable at the top of the file. To preprocess the train set change it to 'trn', for the test set change it to 'tst'.
+
+Finally, run the *09 - Preprocess the AmazonCat-13k Dataset.py* file.
 
 ## Training classifiers for the AmazonCat-13K dataset
 
-Setup the datasets folder that contains the extracted archive files.
+Ensure that the project folder has the following directory structure:
 
+- datasets/
+  - AmazonCat-13K/
+    - tst.processed.json
+    - trn.processed.json
+  - GoogleNews-vectors-negative.bin.gz
+- results/
+  - history/
+  - metrics/
+  - weights/
+
+Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
 
 ## Todos
 
