@@ -7,7 +7,7 @@
 # %%
 import gensim
 
-model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/GoogleNews-vectors-negative300.bin.gz", binary=True)
+model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin.gz", binary=True)
 
 # %% [markdown]
 # ## See How the Embedding Layer Works

@@ -10,6 +10,8 @@ BALANCED = True
 WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
 HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
 METRICS_FILE_TEMPLATE = 'results/metrics/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
+TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
+TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 
 # %% [markdown]
 # Import the dataset
@@ -29,8 +31,8 @@ def import_dataset(path):
     y = ds_frame['y']
     return X, y
 
-X_train, y_train = import_dataset(f'datasets/AmazonCat13K.trn.json')
-X_test, y_test = import_dataset(f'datasets/AmazonCat13K.tst.json')
+X_train, y_train = import_dataset(TRAIN_PATH)
+X_test, y_test = import_dataset(TEST_PATH)
 
 # %%
 def is_positive(i):
@@ -87,7 +89,7 @@ class SimpleClassifier (keras.Sequential):
 # %%
 import gensim
 
-model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/GoogleNews-vectors-negative300.bin.gz", binary=True)
+model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin.gz", binary=True)
 embedding_layer = model.get_keras_embedding(train_embeddings=False)
 
 # %% [markdown]

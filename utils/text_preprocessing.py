@@ -4,7 +4,7 @@ from nltk import word_tokenize
 from string import punctuation
 
 # Load the model to get the vocabulary
-model = gensim.models.KeyedVectors.load_word2vec_format("datasets/first-steps/GoogleNews-vectors-negative300.bin.gz", binary=True)
+model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin.gz", binary=True)
 
 def to_token_id(tokens):
     return [model.vocab[token].index for token in tokens if token in model.vocab]
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     colnames = ['class', 'text', 'description']
 
     # The csv has no header row therefore header=None
-    df = pd.read_csv('datasets/first-steps/charcnn_keras.csv', header=None, names=colnames)
+    df = pd.read_csv('datasets/charcnn_keras.csv', header=None, names=colnames)
     df['text'] = df['text'].astype(pd.StringDtype())
 
     # Join the description column on the text column

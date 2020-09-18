@@ -12,7 +12,7 @@
 import pandas as pd
 colnames = ['class', 'text', 'description']
 # The csv has no header row therefore header=None
-df = pd.read_csv('datasets/first-steps/charcnn_keras.csv', header=None, names=colnames)
+df = pd.read_csv('datasets/charcnn_keras.csv', header=None, names=colnames)
 df['text'] = df['text'].astype(pd.StringDtype())
 # Join the description column on the text column
 df['text'] = df['text'].str.cat(df['description'], sep=" ")

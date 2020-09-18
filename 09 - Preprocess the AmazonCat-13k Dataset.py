@@ -7,6 +7,8 @@ CLASS_COUNT = 13330
 DATASET_TYPE = 'trn'
 # CUTOFF is inclusive
 CUTOFF = 2 if DATASET_TYPE == 'trn' else 0
+INPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.json'
+OUTPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.processed.json'
 
 # %% [markdown]
 # First, load the dataset.
@@ -15,7 +17,7 @@ CUTOFF = 2 if DATASET_TYPE == 'trn' else 0
 import pandas as pd
 from nltk import word_tokenize
 
-df = pd.read_json(f'datasets/AmazonCat13K/{DATASET_TYPE}.json', lines=True)
+df = pd.read_json(INPUT_PATH, lines=True)
 df
 
 # %% [markdown]
@@ -119,4 +121,4 @@ df_processed
 # Save the dataset
 
 # %%
-df_processed.to_json(f'datasets/AmazonCat13K.{DATASET_TYPE}.json', orient='records', lines=True)
+df_processed.to_json(OUTPUT_PATH, orient='records', lines=True)
