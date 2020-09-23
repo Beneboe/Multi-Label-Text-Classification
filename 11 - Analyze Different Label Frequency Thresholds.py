@@ -7,10 +7,9 @@ INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
 # CLASS_COUNT = 30
-BALANCED = True
-WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
-HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
-METRICS_FILE_TEMPLATE = 'results/metrics/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
+WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_class={0}'
+HISTORY_FILE_TEMPLATE = 'results/history/cl_class={0}.json'
+METRICS_FILE_TEMPLATE = 'results/metrics/cl_class={0}.json'
 TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
 TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 EPOCHS = 10
@@ -44,11 +43,11 @@ def is_positive(i):
 def is_negative(i):
     return lambda y: i not in y
 
-def get_dataset(X, y, i):
+def get_dataset(X, y, i, balanced=True):
     X_positive = X[y.map(is_positive(i))]
     X_negative = X[y.map(is_negative(i))]
     # Subsample negative indices
-    if BALANCED:
+    if balanced:
         X_negative = rng.choice(X_negative, X_positive.shape[0], replace=False)
 
     y_positive = np.ones(X_positive.shape[0], dtype='int8')
@@ -139,16 +138,15 @@ def process_classifier(i):
     classifier.save_weights(WEIGHTS_FILE_TEMPLATE.format(i))
 
     # Calculate the metrics
-    Xi_test, yi_test = get_dataset(X_test, y_test, i)
+    Xi_test, yi_test = get_dataset(X_test, y_test, i, balanced=False)
     metrics = get_metrics(classifier, Xi_test, yi_test)
 
     # Store the metrics
     with open(METRICS_FILE_TEMPLATE.format(i), 'w') as fp:
         json.dump(metrics, fp)
 
-    return classifier
-
 # %%
+# Train the classifiers
 import utils.dataset as ds
 
 freqs = ds.class_frequencies(CLASS_COUNT, y_train)
@@ -160,21 +158,30 @@ def freqs_args_below(threshold):
     return freqs_args[i-1:0:-1]
 
 # %%
-label_100 = freqs_args_below(100)[0]
-print('Processing label {0} (occurs {1} times)'.format(label_100, freqs[label_100]))
-process_classifier(label_100)
+labels_per_threshold = 2
+thresholds = [50, 100, 1_000, 10_000, 50_000]
+labels = [freqs_args_below(threshold)[0] for threshold in thresholds]
 
 # %%
-label_1000 = freqs_args_below(1000)[0]
-print('Processing label {0} (occurs {1} times)'.format(label_1000, freqs[label_1000]))
-process_classifier(label_1000)
+# Train the classifiers
+for i in range(len(thresholds)):
+    label = labels[i]
+    print('The label {0} occurs {1} times'.format(label, freqs[label]))
+    process_classifier(label)
 
 # %%
-label_10000 = freqs_args_below(10000)[0]
-print('Processing label {0} (occurs {1} times)'.format(label_10000, freqs[label_10000]))
-process_classifier(label_10000)
+# Load the metrics
+precisions = [0.0] * len(thresholds)
+recalls = [0.0] * len(thresholds)
+for i in range(len(thresholds)):
+    with open(METRICS_FILE_TEMPLATE.format(labels[i]), 'r') as fp:
+        dict = json.load(fp)
+        precisions[i] = dict['precision']
+        recalls[i] = dict['recall']
 
 # %%
 import matplotlib.pyplot as plt
 
-plt.plot()
+plt.plot(thresholds, precisions, 'bs', thresholds, recalls, 'y^')
+plt.xscale('log')
+plt.show()

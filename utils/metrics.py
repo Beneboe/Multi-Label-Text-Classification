@@ -31,7 +31,7 @@ def get_all_predictions(models, X):
 # Metric functions
 def count(y_predict, y_expected) -> int:
     tp, fp, fn, tn = get_confusion(y_predict, y_expected)
-    return tp + fp + fn + tn
+    return int(tp + fp + fn + tn)
 
 def accuracy(y_predict, y_expected) -> float:
     tp, fp, fn, tn = get_confusion(y_predict, y_expected)
