@@ -6,7 +6,7 @@
 CLASS_COUNT = 13330
 DATASET_TYPE = 'trn'
 # CUTOFF is inclusive
-CUTOFF = 2 if DATASET_TYPE == 'trn' else 0
+CUTOFF = 0 if DATASET_TYPE == 'trn' else 0
 INPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.json'
 OUTPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.processed.json'
 
@@ -15,7 +15,6 @@ OUTPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.processed.json'
 
 # %%
 import pandas as pd
-from nltk import word_tokenize
 
 df = pd.read_json(INPUT_PATH, lines=True)
 df
@@ -88,7 +87,7 @@ sorted = np.sort(freqs)
 fig2, ax2 = plt.subplots()
 ax2.set_title('Class frequencies')
 plt.yscale('log')
-ax2.bar(np.arange(sorted.shape[0]), sorted)
+ax2.plot(np.arange(sorted.shape[0]), sorted)
 
 # %% [markdown]
 # ## Preprocess the Dataset
