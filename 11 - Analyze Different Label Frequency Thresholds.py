@@ -3,7 +3,7 @@
 # First, setup the hyperparameters.
 
 # %%
-INPUT_LENGTH = 100
+INPUT_LENGTH = 10
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
 # CLASS_COUNT = 30
@@ -12,7 +12,7 @@ HISTORY_FILE_TEMPLATE = 'results/history/cl_class={0}.json'
 METRICS_FILE_TEMPLATE = 'results/metrics/cl_class={0}.json'
 TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
 TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
-EPOCHS = 10
+EPOCHS = 30
 TRAINING_THRESHOLD = 2
 
 # %% [markdown]
@@ -22,9 +22,8 @@ TRAINING_THRESHOLD = 2
 import pandas as pd
 import numpy as np
 from keras.preprocessing.sequence import pad_sequences
-from pandas.tseries import frequencies
 
-rng = np.random.default_rng()
+rng = np.random.default_rng(42)
 
 def import_dataset(path):
     ds_frame = pd.read_json(path, lines=True)
@@ -46,6 +45,7 @@ def is_negative(i):
 def get_dataset(X, y, i, balanced=True):
     X_positive = X[y.map(is_positive(i))]
     X_negative = X[y.map(is_negative(i))]
+
     # Subsample negative indices
     if balanced:
         X_negative = rng.choice(X_negative, X_positive.shape[0], replace=False)
@@ -56,6 +56,13 @@ def get_dataset(X, y, i, balanced=True):
     X = np.concatenate((X_positive,X_negative))
     y = np.concatenate((y_positive,y_negative))
 
+    # Shuffle the data
+    indices = np.arange(X.shape[0])
+    rng.shuffle(indices)
+
+    X = X[indices]
+    y = y[indices]
+
     return X, y
 
 # %% [markdown]
@@ -63,17 +70,19 @@ def get_dataset(X, y, i, balanced=True):
 
 # %%
 import keras
+from keras.layers import LSTM, Dense, InputLayer
+
 class SimpleClassifier (keras.Sequential):
     def __init__(self, embedding_layer, d_units=8):
         super(SimpleClassifier, self).__init__()
 
         self.inner = keras.Sequential([
-            keras.layers.Dense(units=d_units, activation='relu'),
-            keras.layers.Flatten(),
-            keras.layers.Dense(units=1, activation='sigmoid'),
+            LSTM(units=256),
+            Dense(units=64),
+            Dense(units=1, activation='sigmoid'),
         ])
 
-        self.add(keras.layers.InputLayer(input_shape=(INPUT_LENGTH,)))
+        self.add(InputLayer(input_shape=(INPUT_LENGTH,)))
         self.add(embedding_layer)
         self.add(self.inner)
 
@@ -146,7 +155,6 @@ def process_classifier(i):
         json.dump(metrics, fp)
 
 # %%
-# Train the classifiers
 import utils.dataset as ds
 
 freqs = ds.class_frequencies(CLASS_COUNT, y_train)
@@ -158,9 +166,8 @@ def freqs_args_below(threshold):
     return freqs_args[i-1:0:-1]
 
 # %%
-labels_per_threshold = 2
 # thresholds = [50, 100, 1_000, 10_000, 50_000, 100_000]
-thresholds = [50, 100, 1_000, 10_000]
+thresholds = [50, 100, 500, 1_000, 5_000, 10_000, 50_000]
 labels = [freqs_args_below(threshold)[0] for threshold in thresholds]
 
 # %%
@@ -171,19 +178,23 @@ for i in range(len(thresholds)):
     process_classifier(label)
 
 # %%
+def load_metrics(i):
+    with open(METRICS_FILE_TEMPLATE.format(i), 'r') as fp:
+        return json.load(fp)
+
+# %%
 # Load the metrics
 precisions = [0.0] * len(thresholds)
 recalls = [0.0] * len(thresholds)
 for i in range(len(thresholds)):
-    with open(METRICS_FILE_TEMPLATE.format(labels[i]), 'r') as fp:
-        dict = json.load(fp)
-        precisions[i] = dict['precision']
-        recalls[i] = dict['recall']
+    dict = load_metrics(labels[i])
+    precisions[i] = dict['precision']
+    recalls[i] = dict['recall']
 
 # %%
 import matplotlib.pyplot as plt
 
-plot_labels = [str(threshold) for threshold in thresholds]
+plot_labels = ['{:,d}'.format(threshold) for threshold in thresholds]
 
 plt.plot(plot_labels, precisions, 'bs')
 plt.plot(plot_labels, recalls, 'y^')
@@ -191,3 +202,11 @@ plt.title('Label Frequencies Metrics')
 plt.xlabel('Label Frequency Levels')
 plt.legend(['Precision', 'Recall'])
 plt.show()
+
+# %%
+pd.DataFrame({
+    'precision': precisions,
+    'recall': recalls,
+}, index=plot_labels)
+
+# %%
