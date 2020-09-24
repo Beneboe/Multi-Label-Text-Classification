@@ -159,7 +159,8 @@ def freqs_args_below(threshold):
 
 # %%
 labels_per_threshold = 2
-thresholds = [50, 100, 1_000, 10_000, 50_000]
+# thresholds = [50, 100, 1_000, 10_000, 50_000, 100_000]
+thresholds = [50, 100, 1_000, 10_000]
 labels = [freqs_args_below(threshold)[0] for threshold in thresholds]
 
 # %%
@@ -182,6 +183,11 @@ for i in range(len(thresholds)):
 # %%
 import matplotlib.pyplot as plt
 
-plt.plot(thresholds, precisions, 'bs', thresholds, recalls, 'y^')
-plt.xscale('log')
+plot_labels = [str(threshold) for threshold in thresholds]
+
+plt.plot(plot_labels, precisions, 'bs')
+plt.plot(plot_labels, recalls, 'y^')
+plt.title('Label Frequencies Metrics')
+plt.xlabel('Label Frequency Levels')
+plt.legend(['Precision', 'Recall'])
 plt.show()
