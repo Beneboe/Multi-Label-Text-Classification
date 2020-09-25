@@ -22,27 +22,50 @@ X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
 X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
 embedding_layer = import_embedding_layer()
 
-X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
+# %% [markdown]
+# Define the model
+
+# %%
+from utils.models import BaseClassifier
+from keras import Sequential
+from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
+from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
+
+inner_model = Sequential([
+    Dense(units=8),
+    Flatten(),
+    Dense(units=1, activation='sigmoid'),
+])
+
+model = Sequential([
+    InputLayer(input_shape=(INPUT_LENGTH,)),
+    embedding_layer,
+    inner_model
+])
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
+    'accuracy',
+    Recall(),
+    Precision(),
+])
+
+class Classifier(BaseClassifier):
+    def __init__(self, id):
+        super(Classifier, self).__init__(model, inner_model, id)
 
 # %% [markdown]
 # ## Create, fit, and save the classifier Models
 # Define the steps.
 
 # %%
-from utils.models import DenseClassifier, get_metrics, save_metrics, save_weights, save_history
+from utils.models import save_history
 from sklearn.model_selection import train_test_split
 import keras.metrics as kmt
 
-def process_classifier(i):
+def train_classifier(i):
     print(f'Processing classifier {i}...')
 
     # Create the classifier
-    classifier = DenseClassifier(embedding_layer, INPUT_LENGTH)
-    classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
-        'accuracy',
-        kmt.Recall(),
-        kmt.Precision(),
-    ])
+    classifier = Classifier(i)
     classifier.summary()
 
     # Get the dataset
@@ -57,29 +80,24 @@ def process_classifier(i):
         # Train the classifier
         # history = classifier.fit(Xi_train, yi_train,
             # epochs=EPOCHS, verbose=1, validation_data=(Xi_train_test, yi_train_test), batch_size=20)
-        history = classifier.fit(Xi, yi,
-            epochs=EPOCHS, verbose=1, batch_size=20)
+        history = classifier.fit(Xi, yi, epochs=EPOCHS, verbose=1, batch_size=20)
 
         # Save the history
         save_history(history, i)
 
-    # Save the weights
-    save_weights(classifier, i)
+        # Save the weights
+        classifier.save_weights()
 
-    # Calculate the metrics
-    Xi_test, yi_test = get_dataset(X_test, y_test, i)
-    metrics = get_metrics(classifier, Xi_test, yi_test)
-    # metrics = classifier.evaluate(Xi_test, yi_test, return_dict=True)
-
-    # Store the metrics
-    save_metrics(metrics, i)
+    # Save the metrics
+    Xi_test, yi_test = get_dataset(X_test, y_test, i, balanced=False)
+    classifier.save_metrics(Xi_test, yi_test)
 
 # %% [markdown]
 # Actually train the classifiers.
 
 # %%
 for i in range(CLASS_COUNT):
-    process_classifier(i)
+    train_classifier(i)
 
 # %%
-# process_classifier(81)
+# train_classifier(81)
