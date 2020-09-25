@@ -26,42 +26,44 @@ embedding_layer = import_embedding_layer()
 # Define the model
 
 # %%
-from utils.models import EmbeddingClassifier
-from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
+from utils.models import BaseClassifier
 from keras import Sequential
+from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
+from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
 
-class Classifier(EmbeddingClassifier):
-    def __init__(self):
-        super(Classifier, self).__init__(embedding_layer, INPUT_LENGTH)
+inner_model = Sequential([
+    Dense(units=4),
+    Dropout(0.5),
+    Flatten(),
+    Dense(units=1, activation='sigmoid'),
+])
 
-        self.inner_model = Sequential([
-            LSTM(units=128, return_sequences=True),
-            Dropout(0.5),
-            LSTM(units=64),
-            Dropout(0.5),
-            Dense(units=1, activation='sigmoid'),
-        ])
-        self.add(self.inner_model)
+model = Sequential([
+    InputLayer(input_shape=(INPUT_LENGTH,)),
+    embedding_layer,
+    inner_model
+])
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
+    'accuracy',
+    Recall(),
+    Precision(),
+])
 
+class Classifier(BaseClassifier):
+    def __init__(self, id):
+        super(Classifier, self).__init__(model, inner_model, id)
 
 # %% [markdown]
 # Create, fit, and save the classifier Models
 
 # %%
-from utils.models import LSTMModel, get_metrics, save_metrics, save_weights, save_history, load_metrics
-from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
-import numpy as np
+from utils.models import save_history
 
-def process_classifier(i):
+def train_classifier(i):
     print(f'Processing classifier {i}...')
 
     # Create the classifier
-    classifier = Classifier()
-    classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
-        'accuracy',
-        Recall(),
-        Precision(),
-    ])
+    classifier = Classifier(i)
     classifier.summary()
 
     # Get the dataset
@@ -74,16 +76,14 @@ def process_classifier(i):
     save_history(history, i)
 
     # Save the weights
-    save_weights(classifier, i)
-
-    # Calculate the metrics
-    Xi_test, yi_test = get_dataset(X_test, y_test, i, balanced=False)
-    metrics = get_metrics(classifier, Xi_test, yi_test)
+    classifier.save_weights()
 
     # Save the metrics
-    save_metrics(metrics, i)
+    Xi_test, yi_test = get_dataset(X_test, y_test, i, balanced=False)
+    classifier.save_metrics(Xi_test, yi_test)
 
 # %%
+import numpy as np
 from utils.dataset import class_frequencies
 
 freqs = class_frequencies(CLASS_COUNT, y_train)
@@ -104,14 +104,25 @@ labels = [freqs_args_below(threshold)[0] for threshold in thresholds]
 for i in range(len(thresholds)):
     label = labels[i]
     print('The label {0} occurs {1} times'.format(label, freqs[label]))
-    process_classifier(label)
+    train_classifier(label)
+
 
 # %%
-# Load the metrics
+# import matplotlib.pylab as plt
+
+# c8842 = Classifier(8842)
+# c8842.load_weights()
+# Xi, y_expected = get_dataset(X_test, y_test, 8842, False)
+# confusion = c8842.get_confusion(Xi, y_expected)
+
+
+# %%
+# Gather the metrics
 precisions = [0.0] * len(thresholds)
 recalls = [0.0] * len(thresholds)
 for i in range(len(thresholds)):
-    dict = load_metrics(labels[i])
+    classifier = Classifier(labels[i])
+    dict = classifier.get_metrics()
     precisions[i] = dict['precision']
     recalls[i] = dict['recall']
 
