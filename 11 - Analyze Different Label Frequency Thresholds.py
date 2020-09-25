@@ -23,6 +23,28 @@ X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
 embedding_layer = import_embedding_layer()
 
 # %% [markdown]
+# Define the model
+
+# %%
+from utils.models import EmbeddingClassifier
+from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
+from keras import Sequential
+
+class Classifier(EmbeddingClassifier):
+    def __init__(self):
+        super(Classifier, self).__init__(embedding_layer, INPUT_LENGTH)
+
+        self.inner_model = Sequential([
+            LSTM(units=128, return_sequences=True),
+            Dropout(0.5),
+            LSTM(units=64),
+            Dropout(0.5),
+            Dense(units=1, activation='sigmoid'),
+        ])
+        self.add(self.inner_model)
+
+
+# %% [markdown]
 # Create, fit, and save the classifier Models
 
 # %%
@@ -34,7 +56,7 @@ def process_classifier(i):
     print(f'Processing classifier {i}...')
 
     # Create the classifier
-    classifier = LSTMModel(embedding_layer, INPUT_LENGTH)
+    classifier = Classifier()
     classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
         'accuracy',
         Recall(),

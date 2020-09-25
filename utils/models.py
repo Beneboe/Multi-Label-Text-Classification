@@ -9,7 +9,7 @@ METRICS_FILE_TEMPLATE = 'results/metrics/cl_class={0}.json'
 
 class EmbeddingClassifier(Sequential):
     def __init__(self, embedding_layer, input_length):
-        super(LSTMModel, self).__init__()
+        super(EmbeddingClassifier, self).__init__()
 
         self.add(InputLayer(input_shape=(input_length,)))
         self.add(embedding_layer)

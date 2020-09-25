@@ -10,7 +10,7 @@ CLASS_COUNT = 13330
 TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
 TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 EPOCHS = 10
-TRAINING_THRESHOLD = 2
+TRAINING_THRESHOLD = 10
 
 # %% [markdown]
 # Import the dataset and the embedding layer
@@ -32,7 +32,6 @@ X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
 from utils.models import DenseClassifier, get_metrics, save_metrics, save_weights, save_history
 from sklearn.model_selection import train_test_split
 import keras.metrics as kmt
-import json
 
 def process_classifier(i):
     print(f'Processing classifier {i}...')
