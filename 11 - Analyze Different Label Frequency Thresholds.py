@@ -16,6 +16,7 @@ TRAINING_THRESHOLD = 2
 # Import the dataset and the embedding layer
 
 # %%
+from matplotlib.pyplot import annotate
 from utils.dataset import import_dataset, import_embedding_layer, get_dataset
 
 X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
@@ -124,13 +125,15 @@ for i in range(len(thresholds)):
 
 
 # %%
-# import matplotlib.pylab as plt
+from utils.plots import confusion
+import pandas as pd
 
-# c8842 = Classifier(8842)
-# c8842.load_weights()
-# Xi, y_expected = get_dataset(X_test, y_test, 8842, False)
-# confusion = c8842.get_confusion(Xi, y_expected)
+c8842 = Classifier(8842)
+c8842.load_weights()
 
+Xi, y_expected = get_dataset(X_test, y_test, 8842, False)
+(tp, fp, fn, tn) = c8842.get_confusion(Xi, y_expected)
+confusion(tp, fp, fn, tn)
 
 # %%
 # Gather the metrics
