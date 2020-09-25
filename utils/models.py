@@ -1,6 +1,11 @@
 from keras import Sequential
 from keras.layers import LSTM, Dense, InputLayer, Dropout, Flatten
 import utils.metrics as mt
+import json
+
+WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_class={0}'
+HISTORY_FILE_TEMPLATE = 'results/history/cl_class={0}.json'
+METRICS_FILE_TEMPLATE = 'results/metrics/cl_class={0}.json'
 
 class EmbeddingClassifier(Sequential):
     def __init__(self, embedding_layer, input_length):
@@ -40,7 +45,6 @@ class DenseClassifier(EmbeddingClassifier):
         ])
         self.add(self.inner_model)
 
-
 def get_metrics(classifier, X, y_expected):
     y_predict = mt.get_prediction(classifier, X)
 
@@ -51,3 +55,21 @@ def get_metrics(classifier, X, y_expected):
         'precision': mt.precision(y_predict, y_expected),
         'f1 measure': mt.f1measure(y_predict, y_expected),
     }
+
+def save_weights(classifier, i):
+    classifier.save_weights(WEIGHTS_FILE_TEMPLATE.format(i))
+
+def load_weights(classifier, i):
+    classifier.load_weights(WEIGHTS_FILE_TEMPLATE.format(i))
+
+def save_metrics(metrics, i):
+    with open(METRICS_FILE_TEMPLATE.format(i), 'w') as fp:
+        json.dump(metrics, fp)
+
+def load_metrics(i):
+    with open(METRICS_FILE_TEMPLATE.format(i), 'r') as fp:
+        return json.load(fp)
+
+def save_history(history, i):
+    with open(HISTORY_FILE_TEMPLATE.format(i), 'w') as fp:
+            json.dump(history.history, fp)

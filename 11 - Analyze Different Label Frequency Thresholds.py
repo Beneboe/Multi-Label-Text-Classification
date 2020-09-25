@@ -7,9 +7,6 @@ INPUT_LENGTH = 10
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
 # CLASS_COUNT = 30
-WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_class={0}'
-HISTORY_FILE_TEMPLATE = 'results/history/cl_class={0}.json'
-METRICS_FILE_TEMPLATE = 'results/metrics/cl_class={0}.json'
 TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
 TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 EPOCHS = 30
@@ -29,13 +26,13 @@ embedding_layer = import_embedding_layer()
 # Create, fit, and save the classifier Models
 
 # %%
-from utils.models import LSTMModel, get_embedding_layer, get_metrics
+from utils.models import LSTMModel, get_metrics, save_metrics, save_weights, save_history, load_metrics
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
 import numpy as np
-import json
 
 def process_classifier(i):
     print(f'Processing classifier {i}...')
+
     # Create the classifier
     classifier = LSTMModel(embedding_layer, INPUT_LENGTH)
     classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
@@ -46,25 +43,23 @@ def process_classifier(i):
     classifier.summary()
 
     # Get the dataset
-    Xi, yi = ds.get_dataset(X_train, y_train, i)
+    Xi, yi = get_dataset(X_train, y_train, i)
 
     # Train the classifier
     history = classifier.fit(Xi, yi, epochs=EPOCHS, verbose=1, batch_size=32)
 
-    # Store the history
-    with open(HISTORY_FILE_TEMPLATE.format(i), 'w') as fp:
-        json.dump(history.history, fp)
+    # Save the history
+    save_history(history, i)
 
     # Save the weights
-    classifier.save_weights(WEIGHTS_FILE_TEMPLATE.format(i))
+    save_weights(classifier, i)
 
     # Calculate the metrics
     Xi_test, yi_test = get_dataset(X_test, y_test, i, balanced=False)
     metrics = get_metrics(classifier, Xi_test, yi_test)
 
-    # Store the metrics
-    with open(METRICS_FILE_TEMPLATE.format(i), 'w') as fp:
-        json.dump(metrics, fp)
+    # Save the metrics
+    save_metrics(metrics, i)
 
 # %%
 from utils.dataset import class_frequencies
@@ -88,11 +83,6 @@ for i in range(len(thresholds)):
     label = labels[i]
     print('The label {0} occurs {1} times'.format(label, freqs[label]))
     process_classifier(label)
-
-# %%
-def load_metrics(i):
-    with open(METRICS_FILE_TEMPLATE.format(i), 'r') as fp:
-        return json.load(fp)
 
 # %%
 # Load the metrics

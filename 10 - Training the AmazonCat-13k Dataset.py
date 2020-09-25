@@ -7,10 +7,6 @@ INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
 # CLASS_COUNT = 30
-BALANCED = True
-WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_bal={0}_class={{0}}'.format('1' if BALANCED else '0')
-HISTORY_FILE_TEMPLATE = 'results/history/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
-METRICS_FILE_TEMPLATE = 'results/metrics/cl_bal={0}_class={{0}}.json'.format('1' if BALANCED else '0')
 TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
 TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 EPOCHS = 10
@@ -33,13 +29,14 @@ X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
 # Define the steps.
 
 # %%
-from utils.models import DenseClassifier, get_metrics
+from utils.models import DenseClassifier, get_metrics, save_metrics, save_weights, save_history
 from sklearn.model_selection import train_test_split
 import keras.metrics as kmt
 import json
 
 def process_classifier(i):
     print(f'Processing classifier {i}...')
+
     # Create the classifier
     classifier = DenseClassifier(embedding_layer, INPUT_LENGTH)
     classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
@@ -64,12 +61,11 @@ def process_classifier(i):
         history = classifier.fit(Xi, yi,
             epochs=EPOCHS, verbose=1, batch_size=20)
 
-        # Store the history
-        with open(HISTORY_FILE_TEMPLATE.format(i), 'w') as fp:
-            json.dump(history.history, fp)
+        # Save the history
+        save_history(history, i)
 
     # Save the weights
-    classifier.save_weights(WEIGHTS_FILE_TEMPLATE.format(i))
+    save_weights(classifier, i)
 
     # Calculate the metrics
     Xi_test, yi_test = get_dataset(X_test, y_test, i)
@@ -77,8 +73,7 @@ def process_classifier(i):
     # metrics = classifier.evaluate(Xi_test, yi_test, return_dict=True)
 
     # Store the metrics
-    with open(METRICS_FILE_TEMPLATE.format(i), 'w') as fp:
-        json.dump(metrics, fp)
+    save_metrics(metrics, i)
 
 # %% [markdown]
 # Actually train the classifiers.
