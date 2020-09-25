@@ -94,7 +94,6 @@ ax2.plot(np.arange(sorted.shape[0]), sorted)
 
 # %%
 from utils.text_preprocessing import preprocess
-from keras.preprocessing.sequence import pad_sequences
 
 X = preprocess(df['title'])
 y = df['target_ind']

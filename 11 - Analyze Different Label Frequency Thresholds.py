@@ -16,128 +16,40 @@ EPOCHS = 30
 TRAINING_THRESHOLD = 2
 
 # %% [markdown]
-# Import the dataset
+# Import the dataset and the embedding layer
 
 # %%
-import pandas as pd
+from utils.dataset import import_dataset, import_embedding_layer, get_dataset
+
+X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
+X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
+embedding_layer = import_embedding_layer()
+
+# %% [markdown]
+# Create, fit, and save the classifier Models
+
+# %%
+from utils.models import LSTMModel, get_embedding_layer, get_metrics
+from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
 import numpy as np
-from keras.preprocessing.sequence import pad_sequences
-
-rng = np.random.default_rng(42)
-
-def import_dataset(path):
-    ds_frame = pd.read_json(path, lines=True)
-    # Make sequences same length
-    X = pad_sequences(ds_frame['X'], maxlen=INPUT_LENGTH)
-    y = ds_frame['y']
-    return X, y
-
-X_train, y_train = import_dataset(TRAIN_PATH)
-X_test, y_test = import_dataset(TEST_PATH)
-
-# %%
-def is_positive(i):
-    return lambda y: i in y
-
-def is_negative(i):
-    return lambda y: i not in y
-
-def get_dataset(X, y, i, balanced=True):
-    X_positive = X[y.map(is_positive(i))]
-    X_negative = X[y.map(is_negative(i))]
-
-    # Subsample negative indices
-    if balanced:
-        X_negative = rng.choice(X_negative, X_positive.shape[0], replace=False)
-
-    y_positive = np.ones(X_positive.shape[0], dtype='int8')
-    y_negative = np.zeros(X_negative.shape[0], dtype='int8')
-
-    X = np.concatenate((X_positive,X_negative))
-    y = np.concatenate((y_positive,y_negative))
-
-    # Shuffle the data
-    indices = np.arange(X.shape[0])
-    rng.shuffle(indices)
-
-    X = X[indices]
-    y = y[indices]
-
-    return X, y
-
-# %% [markdown]
-# ## Define the Classifier Model
-
-# %%
-import keras
-from keras.layers import LSTM, Dense, InputLayer
-
-class SimpleClassifier (keras.Sequential):
-    def __init__(self, embedding_layer, d_units=8):
-        super(SimpleClassifier, self).__init__()
-
-        self.inner = keras.Sequential([
-            LSTM(units=256),
-            Dense(units=64),
-            Dense(units=1, activation='sigmoid'),
-        ])
-
-        self.add(InputLayer(input_shape=(INPUT_LENGTH,)))
-        self.add(embedding_layer)
-        self.add(self.inner)
-
-    def save_weights(self, filepath, overwrite=True, save_format=None, options=None):
-        # Do not save the weights of the embedding layer
-        return self.inner.save_weights(filepath, overwrite=overwrite, save_format=save_format, options=options)
-
-    def load_weights(self, filepath, by_name=False, skip_mismatch=False, options=None):
-        return self.inner.load_weights(filepath, by_name=by_name, skip_mismatch=skip_mismatch, options=options)
-
-# %% [markdown]
-# ## Import the Embedding Layer
-
-# %%
-import gensim
-
-model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin.gz", binary=True)
-embedding_layer = model.get_keras_embedding(train_embeddings=False)
-
-# %% [markdown]
-# ## Create, fit, and save the classifier Models
-# Define the steps.
-
-# %%
-import utils.metrics as mt
-import keras.metrics as kmt
 import json
-
-def get_metrics(classifier, X, y_expected):
-    y_predict = mt.get_prediction(classifier, X)
-
-    return {
-        'count': mt.count(y_predict, y_expected),
-        'accuracy': mt.accuracy(y_predict, y_expected),
-        'recall': mt.recall(y_predict, y_expected),
-        'precision': mt.precision(y_predict, y_expected),
-        'f1 measure': mt.f1measure(y_predict, y_expected),
-    }
 
 def process_classifier(i):
     print(f'Processing classifier {i}...')
     # Create the classifier
-    classifier = SimpleClassifier(embedding_layer)
+    classifier = LSTMModel(embedding_layer, INPUT_LENGTH)
     classifier.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
         'accuracy',
-        kmt.Recall(),
-        kmt.Precision(),
+        Recall(),
+        Precision(),
     ])
     classifier.summary()
 
     # Get the dataset
-    Xi, yi = get_dataset(X_train, y_train, i)
+    Xi, yi = ds.get_dataset(X_train, y_train, i)
 
     # Train the classifier
-    history = classifier.fit(Xi, yi, epochs=EPOCHS, verbose=1, batch_size=20)
+    history = classifier.fit(Xi, yi, epochs=EPOCHS, verbose=1, batch_size=32)
 
     # Store the history
     with open(HISTORY_FILE_TEMPLATE.format(i), 'w') as fp:
@@ -155,9 +67,9 @@ def process_classifier(i):
         json.dump(metrics, fp)
 
 # %%
-import utils.dataset as ds
+from utils.dataset import class_frequencies
 
-freqs = ds.class_frequencies(CLASS_COUNT, y_train)
+freqs = class_frequencies(CLASS_COUNT, y_train)
 freqs_args = np.argsort(freqs)
 
 def freqs_args_below(threshold):
@@ -167,7 +79,7 @@ def freqs_args_below(threshold):
 
 # %%
 # thresholds = [50, 100, 1_000, 10_000, 50_000, 100_000]
-thresholds = [50, 100, 500, 1_000, 5_000, 10_000, 50_000]
+thresholds = [50, 100, 500, 1_000, 5_000, 10_000]
 labels = [freqs_args_below(threshold)[0] for threshold in thresholds]
 
 # %%
@@ -192,6 +104,7 @@ for i in range(len(thresholds)):
     recalls[i] = dict['recall']
 
 # %%
+# Create the graph for each of the thresholds
 import matplotlib.pyplot as plt
 
 plot_labels = ['{:,d}'.format(threshold) for threshold in thresholds]
@@ -201,12 +114,14 @@ plt.plot(plot_labels, recalls, 'y^')
 plt.title('Label Frequencies Metrics')
 plt.xlabel('Label Frequency Levels')
 plt.legend(['Precision', 'Recall'])
+plt.grid()
 plt.show()
 
 # %%
+# Create the table for each of the thresholds
+import pandas as pd
+
 pd.DataFrame({
     'precision': precisions,
     'recall': recalls,
 }, index=plot_labels)
-
-# %%
