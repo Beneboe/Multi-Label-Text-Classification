@@ -31,6 +31,22 @@ from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
 
+# Alternative 1
+# inner_model = Sequential([
+#     LSTM(units=256),
+#     Dense(units=64),
+#     Dense(units=1, activation='sigmoid'),
+# ])
+
+# Alternative 2
+# inner_model = Sequential([
+#     LSTM(units=128, return_sequences=True),
+#     Dropout(0.5),
+#     LSTM(units=64),
+#     Dropout(0.5),
+#     Dense(units=1, activation='sigmoid'),
+# ])
+
 inner_model = Sequential([
     Dense(units=4),
     Dropout(0.5),
