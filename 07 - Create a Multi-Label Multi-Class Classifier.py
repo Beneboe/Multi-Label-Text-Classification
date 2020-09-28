@@ -27,7 +27,7 @@ from sklearn.model_selection import train_test_split
 
 rng = np.random.default_rng()
 
-df = pd.read_csv("datasets/charcnn_keras_processed.csv",
+df = pd.read_csv("datasets/ag_news_csv/train.processed.csv",
     index_col=0,
     converters={"text": lambda x: x.strip("[]").replace("'","").split(", ")})
 

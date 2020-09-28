@@ -9,6 +9,13 @@
   - [AG new corpus](https://github.com/mhjabreel/CharCnn_Keras/tree/master/data/ag_news_csv)
   - [AmazonCat-13K](https://drive.google.com/file/d/17rVRDarPwlMpb3l5zof9h34FlwbpTu4l)
 
+Before we can use NLTK for tokenization some steps need to be completed. Open a new python session and run:
+
+```python
+import nltk
+nltk.download('punkt')
+```
+
 ## Preprocessing the AmazonCat-13K dataset
 
 Ensure that the project folder has the following directory structure:

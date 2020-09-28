@@ -30,7 +30,7 @@ if __name__ == "__main__":
     colnames = ['class', 'text', 'description']
 
     # The csv has no header row therefore header=None
-    df = pd.read_csv('datasets/charcnn_keras.csv', header=None, names=colnames)
+    df = pd.read_csv('datasets/ag_news_csv/train.csv', header=None, names=colnames)
     df['text'] = df['text'].astype(pd.StringDtype())
 
     # Join the description column on the text column
@@ -44,4 +44,4 @@ if __name__ == "__main__":
 
     df['text'] = preprocess(df['text'])
 
-    df.to_csv("datasets/charcnn_keras_processed.csv")
+    df.to_csv("datasets/ag_news_csv/train.processed.csv")
