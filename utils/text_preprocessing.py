@@ -4,7 +4,7 @@ from nltk import word_tokenize
 from string import punctuation
 
 # Load the model to get the vocabulary
-model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin.gz", binary=True)
+model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin", binary=True)
 
 def to_token_id(tokens):
     return [model.vocab[token].index for token in tokens if token in model.vocab]

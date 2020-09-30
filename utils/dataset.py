@@ -32,7 +32,7 @@ def import_dataset(path, length):
     return X, y
 
 def import_embedding_layer():
-    model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin.gz", binary=True)
+    model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin", binary=True)
     return model.get_keras_embedding(train_embeddings=False)
 
 def is_positive(i):
