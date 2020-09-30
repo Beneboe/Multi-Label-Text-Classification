@@ -77,6 +77,7 @@ import matplotlib.pyplot as plt
 fig1, ax1 = plt.subplots()
 ax1.set_title('Class frequencies')
 ax1.boxplot(freqs)
+plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_boxplot.png', dpi=163)
 
 # %% [markdown]
 # Create a historgram for the frequencies.
@@ -88,6 +89,7 @@ fig2, ax2 = plt.subplots()
 ax2.set_title('Class frequencies')
 plt.yscale('log')
 ax2.plot(np.arange(sorted.shape[0]), sorted)
+plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163)
 
 # %% [markdown]
 # ## Preprocess the Dataset

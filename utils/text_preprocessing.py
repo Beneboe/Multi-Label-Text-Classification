@@ -9,6 +9,9 @@ model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vec
 def to_token_id(tokens):
     return [model.vocab[token].index for token in tokens if token in model.vocab]
 
+def from_token_ids(ids):
+    return [model.index2word[id] for id in ids]
+
 def preprocess(series):
     # Lowercase the words
     series = series.str.lower()
