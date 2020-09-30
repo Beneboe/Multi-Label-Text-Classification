@@ -1,8 +1,11 @@
+from utils.dataset import get_dataset
 from os.path import isfile
 from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
+from sklearn.model_selection import train_test_split
 import utils.metrics as mt
+import keras.metrics as kmt
 import json
 
 WEIGHTS_FILE_TEMPLATE = 'results/weights/cl_class={0}'
@@ -68,3 +71,39 @@ class BaseClassifier:
 def save_history(history, id):
     with open(HISTORY_FILE_TEMPLATE.format(id), 'w') as fp:
         json.dump(history.history, fp)
+
+class Trainer:
+    def __init__(self, Model, X_train, y_train, X_test, y_test, threshold=10, epochs=30, batch_size=32):
+        self.Model = Model
+        self.threshold = threshold
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_test = X_test
+        self.y_test = y_test
+        self.epochs = epochs
+        self.batch_size = batch_size
+
+    def train(self, i):
+        print(f'Processing classifier {i}...')
+
+        # Create the classifier
+        classifier = self.Model(i)
+        classifier.summary()
+
+        # Get the dataset
+        Xi, yi = get_dataset(self.X_train, self.y_train, i)
+
+        # Only split and train dataset if there is enough data
+        if Xi.shape[0] > self.threshold:
+            # Train the classifier
+            history = classifier.fit(Xi, yi, epochs=self.epochs, verbose=1, batch_size=self.batch_size)
+
+            # Save the history
+            save_history(history, i)
+
+            # Save the weights
+            classifier.save_weights()
+
+        # Save the metrics
+        Xi_test, yi_test = get_dataset(self.X_test, self.y_test, i, balanced=False)
+        classifier.save_metrics(Xi_test, yi_test)

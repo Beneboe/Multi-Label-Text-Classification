@@ -1,6 +1,12 @@
+# %%
+from utils.dataset import get_stats, class_frequencies
+from utils.text_preprocessing import preprocess
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
 # %% [markdown]
 # # Preprocess the AmazonCat-13k Dataset
-# Setup the hyperparameters
 
 # %%
 CLASS_COUNT = 13330
@@ -14,8 +20,6 @@ OUTPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.processed.json'
 # First, load the dataset.
 
 # %%
-import pandas as pd
-
 df = pd.read_json(INPUT_PATH, lines=True)
 df
 
@@ -24,8 +28,6 @@ df
 # Next, we can calculate the maximum and minimum inds.
 
 # %%
-import numpy as np
-
 max_ind = 0
 min_ind = 2_147_483_647
 for inds in df['target_ind']:
@@ -46,8 +48,6 @@ print("Count (expected):", CLASS_COUNT)
 # Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
 
 # %%
-from utils.dataset import var_stats, class_frequencies
-
 vlen = np.vectorize(len)
 
 ds_stats_index = []
@@ -55,16 +55,16 @@ ds_stats = []
 
 freqs = class_frequencies(CLASS_COUNT, df['target_ind'])
 ds_stats_index.append('class frequencies')
-ds_stats.append(var_stats(freqs))
+ds_stats.append(get_stats(freqs))
 
 ds_stats_index.append('title char lengths')
-ds_stats.append(var_stats(vlen(df['title'])))
+ds_stats.append(get_stats(vlen(df['title'])))
 
 ds_stats_index.append('content char lengths')
-ds_stats.append(var_stats(vlen(df['content'])))
+ds_stats.append(get_stats(vlen(df['content'])))
 
 ds_stats_index.append('instance class count')
-ds_stats.append(var_stats(df['target_ind'].map(len)))
+ds_stats.append(get_stats(df['target_ind'].map(len)))
 
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
@@ -72,8 +72,6 @@ pd.DataFrame(ds_stats, index=ds_stats_index)
 # Create a boxplot for the frequencies.
 
 # %%
-import matplotlib.pyplot as plt
-
 fig1, ax1 = plt.subplots()
 ax1.set_title('Class frequencies')
 ax1.boxplot(freqs)
@@ -95,8 +93,6 @@ plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163
 # ## Preprocess the Dataset
 
 # %%
-from utils.text_preprocessing import preprocess
-
 X = preprocess(df['title'])
 y = df['target_ind']
 
@@ -107,7 +103,7 @@ y = df['target_ind']
 token_lens = vlen(X)
 
 ds_stats_index.append('token lengths')
-ds_stats.append(var_stats(token_lens))
+ds_stats.append(get_stats(token_lens))
 
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
@@ -132,13 +128,13 @@ y = y[indices]
 token_lens = vlen(X)
 
 ds_stats_index.append('class frequencies (after cutoff)')
-ds_stats.append(var_stats(class_frequencies(CLASS_COUNT, y)))
+ds_stats.append(get_stats(class_frequencies(CLASS_COUNT, y)))
 
 ds_stats_index.append('instance class count (after cutoff)')
-ds_stats.append(var_stats(y.map(len)))
+ds_stats.append(get_stats(y.map(len)))
 
 ds_stats_index.append('token lengths (after cutoff)')
-ds_stats.append(var_stats(token_lens))
+ds_stats.append(get_stats(token_lens))
 
 pd.DataFrame(ds_stats, index=ds_stats_index)
 

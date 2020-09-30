@@ -5,7 +5,7 @@ from keras.preprocessing.sequence import pad_sequences
 
 rng = np.random.default_rng()
 
-def var_stats(a):
+def get_stats(a):
     return {
         'max': a.max(),
         'min': a.min(),

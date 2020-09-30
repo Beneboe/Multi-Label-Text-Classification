@@ -1,3 +1,15 @@
+# %%
+from utils.dataset import import_dataset, import_embedding_layer, get_dataset
+from utils.models import BaseClassifier, Trainer
+from keras import Sequential
+from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
+from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
+from utils.dataset import class_frequencies
+from utils.plots import confusion
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
 # %% [markdown]
 # # Analyze Different Label Frequency Thresholds
 # First, setup the hyperparameters.
@@ -16,8 +28,6 @@ TRAINING_THRESHOLD = 2
 # Import the dataset and the embedding layer
 
 # %%
-from matplotlib.pyplot import annotate
-from utils.dataset import import_dataset, import_embedding_layer, get_dataset
 
 X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
 X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
@@ -27,17 +37,13 @@ embedding_layer = import_embedding_layer()
 # Define the model
 
 # %%
-from utils.models import BaseClassifier
-from keras import Sequential
-from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
-from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
 
 # Alternative 1
-# inner_model = Sequential([
-#     LSTM(units=256),
-#     Dense(units=64),
-#     Dense(units=1, activation='sigmoid'),
-# ])
+inner_model = Sequential([
+    LSTM(units=256),
+    Dense(units=64),
+    Dense(units=1, activation='sigmoid'),
+])
 
 # Alternative 2
 # inner_model = Sequential([
@@ -48,12 +54,13 @@ from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
 #     Dense(units=1, activation='sigmoid'),
 # ])
 
-inner_model = Sequential([
-    Dense(units=4),
-    Dropout(0.5),
-    Flatten(),
-    Dense(units=1, activation='sigmoid'),
-])
+# Alternative 3
+# inner_model = Sequential([
+#     Dense(units=4),
+#     Dropout(0.5),
+#     Flatten(),
+#     Dense(units=1, activation='sigmoid'),
+# ])
 
 model = Sequential([
     InputLayer(input_shape=(INPUT_LENGTH,)),
@@ -70,39 +77,12 @@ class Classifier(BaseClassifier):
     def __init__(self, id):
         super(Classifier, self).__init__(model, inner_model, id)
 
+trainer = Trainer(Classifier, X_train, y_train, X_test, y_test, threshold=2, epochs=EPOCHS)
+
 # %% [markdown]
-# Create, fit, and save the classifier Models
+# Calculate the frequencies
 
 # %%
-from utils.models import save_history
-
-def train_classifier(i):
-    print(f'Processing classifier {i}...')
-
-    # Create the classifier
-    classifier = Classifier(i)
-    classifier.summary()
-
-    # Get the dataset
-    Xi, yi = get_dataset(X_train, y_train, i)
-
-    # Train the classifier
-    history = classifier.fit(Xi, yi, epochs=EPOCHS, verbose=1, batch_size=32)
-
-    # Save the history
-    save_history(history, i)
-
-    # Save the weights
-    classifier.save_weights()
-
-    # Save the metrics
-    Xi_test, yi_test = get_dataset(X_test, y_test, i, balanced=False)
-    classifier.save_metrics(Xi_test, yi_test)
-
-# %%
-import numpy as np
-from utils.dataset import class_frequencies
-
 freqs = class_frequencies(CLASS_COUNT, y_train)
 freqs_args = np.argsort(freqs)
 
@@ -116,27 +96,19 @@ def freqs_args_below(threshold):
 thresholds = [50, 100, 500, 1_000, 5_000, 10_000]
 labels = [freqs_args_below(threshold)[0] for threshold in thresholds]
 
-# %%
+# %% [markdown]
 # Train the classifiers
+
+# %%
 for i in range(len(thresholds)):
     label = labels[i]
     print('The label {0} occurs {1} times'.format(label, freqs[label]))
-    train_classifier(label)
+    trainer.train(label)
 
-
-# %%
-from utils.plots import confusion
-import pandas as pd
-
-c8842 = Classifier(8842)
-c8842.load_weights()
-
-Xi, y_expected = get_dataset(X_test, y_test, 8842, False)
-(tp, fp, fn, tn) = c8842.get_confusion(Xi, y_expected)
-confusion(tp, fp, fn, tn)
-
-# %%
+# %% [markdown]
 # Gather the metrics
+
+# %%
 precisions = [0.0] * len(thresholds)
 recalls = [0.0] * len(thresholds)
 for i in range(len(thresholds)):
@@ -145,23 +117,23 @@ for i in range(len(thresholds)):
     precisions[i] = dict['precision']
     recalls[i] = dict['recall']
 
-# %%
-# Create the graph for each of the thresholds
-import matplotlib.pyplot as plt
+# %% [markdown]
+# Graph the performance of each thresholds
 
+# %%
 plot_labels = ['{:,d}'.format(threshold) for threshold in thresholds]
 
 plt.plot(plot_labels, precisions, 'bs')
 plt.plot(plot_labels, recalls, 'y^')
-plt.title('Label Frequencies Metrics')
+plt.title('Classifier Frequency Performance')
 plt.xlabel('Label Frequency Levels')
 plt.legend(['Precision', 'Recall'])
 plt.grid()
 plt.show()
+plt.savefig(f'datasets/imgs/AmazonCat-13K_classifier_frequency_performance.png', dpi=163)
 
 # %%
 # Create the table for each of the thresholds
-import pandas as pd
 
 pd.DataFrame({
     'precision': precisions,
