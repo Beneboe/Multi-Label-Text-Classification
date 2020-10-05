@@ -136,7 +136,8 @@ ds_stats.append(get_stats(y.map(len)))
 ds_stats_index.append('token lengths (after cutoff)')
 ds_stats.append(get_stats(token_lens))
 
-pd.DataFrame(ds_stats, index=ds_stats_index)
+stats_df = pd.DataFrame(ds_stats, index=ds_stats_index)
+stats_df.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}.csv')
 
 # %%
 df_processed = pd.DataFrame({ 'X': X, 'y': y })

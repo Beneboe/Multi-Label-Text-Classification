@@ -13,7 +13,7 @@ def history(hist):
     plt.legend(['test'], loc='upper left')
     plt.show()
 
-def confusion(tp, fp, fn, tn):
+def plot_confusion(tp, fp, fn, tn):
     cm = np.array([tp, fp, fn, tn]).reshape((2,2))
     df_cm = pd.DataFrame(cm,
         ['predicted true', 'predict false'],
@@ -26,3 +26,11 @@ def confusion(tp, fp, fn, tn):
         norm=LogNorm(vmin=cm.min().min(),
         vmax=cm.max().max()))
     plt.show()
+
+def plot_history(history):
+    for value in history.values():
+        plt.plot(value)
+    plt.set_title(f'Classifier {1} Performance')
+    plt.set_xlabel('Metric Performance')
+    plt.set_xlabel('Epoch')
+    plt.legend(history.keys(), loc='lower right')

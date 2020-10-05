@@ -5,7 +5,7 @@ from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
 from utils.dataset import class_frequencies
-from utils.plots import confusion
+from utils.plots import plot_confusion
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
