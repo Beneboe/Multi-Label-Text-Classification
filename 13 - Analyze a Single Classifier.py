@@ -63,7 +63,7 @@ model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
 ])
 
 # %% [markdown]
-# Train on balanced train set
+# Define the models
 
 # %%
 class ClassifierBalanced(BaseClassifier):
@@ -79,13 +79,6 @@ class ClassifierBalanced(BaseClassifier):
     def get_metrics_path(self):
         return f'results/metrics/{self.id}_balanced.json'
 
-trainer = Trainer(ClassifierBalanced, X_train, y_train, X_test, y_test)
-trainer.train(CLASS, train_balance=True)
-
-
-# %% [markdown]
-# Train on unbalanced train set
-
 # %%
 class ClassifierUnbalanced(BaseClassifier):
     def __init__(self, id):
@@ -100,6 +93,17 @@ class ClassifierUnbalanced(BaseClassifier):
     def get_metrics_path(self):
         return f'results/metrics/{self.id}_unbalanced.json'
 
+# %% [markdown]
+# Train on balanced train set
+
+# %%
+trainer = Trainer(ClassifierBalanced, X_train, y_train, X_test, y_test)
+trainer.train(CLASS, train_balance=True)
+
+# %% [markdown]
+# Train on unbalanced train set
+
+# %%
 trainer = Trainer(ClassifierUnbalanced, X_train, y_train, X_test, y_test)
 trainer.train(CLASS, train_balance=False)
 
@@ -107,7 +111,7 @@ trainer.train(CLASS, train_balance=False)
 # Create confusion plot
 
 # %%
-classifier1 = ClassifierBalanced(CLASS, True)
+classifier1 = ClassifierBalanced(CLASS)
 classifier1.load_weights()
 
 # %% [markdown]
@@ -118,6 +122,8 @@ Xi, y_expected = get_dataset(X_test, y_test, CLASS, False)
 (tp, fp, fn, tn) = classifier1.get_confusion(Xi, y_expected)
 plot_confusion(tp, fp, fn, tn)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.svg')
+plt.show()
 
 # %%
 classifier2 = ClassifierUnbalanced(CLASS)
@@ -128,6 +134,8 @@ Xi, y_expected = get_dataset(X_test, y_test, CLASS, False)
 (tp, fp, fn, tn) = classifier2.get_confusion(Xi, y_expected)
 plot_confusion(tp, fp, fn, tn)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.svg')
+plt.show()
 
 # %% [markdown]
 # Create the history plot
@@ -137,11 +145,17 @@ history1 = None
 with open(f'results/history/{CLASS}_balanced.json', 'r') as fp:
     history1 = json.load(fp)
 plot_history(history1)
-plt.savefig('datasets/imgs/classifier_{CLASS}_balanced_history.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.svg')
+plt.show()
 
 # %%
 history2 = None
 with open(f'results/history/{CLASS}_unbalanced.json', 'r') as fp:
     history2 = json.load(fp)
 plot_history(history2)
-plt.savefig('datasets/imgs/classifier_{CLASS}_unbalanced_history.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.svg')
+plt.show()
+
+# %%

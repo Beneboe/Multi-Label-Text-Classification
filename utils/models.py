@@ -108,5 +108,5 @@ class Trainer:
             classifier.save_weights()
 
         # Save the metrics
-        Xi_test, yi_test = get_dataset(self.X_test, self.y_test, i)
+        Xi_test, yi_test = get_dataset(self.X_test, self.y_test, i, balanced=False)
         classifier.save_metrics(Xi_test, yi_test)
