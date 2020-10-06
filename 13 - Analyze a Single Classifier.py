@@ -2,10 +2,13 @@
 from utils.dataset import import_dataset, import_embedding_layer, get_dataset
 from utils.plots import plot_confusion, plot_history
 from utils.models import BaseClassifier, Trainer
+from utils.text_preprocessing import from_token_ids
 from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
+import utils.metrics as mt
 import matplotlib.pyplot as plt
+import numpy as np
 import json
 
 # %%
@@ -107,38 +110,22 @@ trainer.train(CLASS, train_balance=True)
 trainer = Trainer(ClassifierUnbalanced, X_train, y_train, X_test, y_test)
 trainer.train(CLASS, train_balance=False)
 
-# %% [markdown]
-# Create confusion plot
-
 # %%
-classifier1 = ClassifierBalanced(CLASS)
-classifier1.load_weights()
+Xi, yi_expected = get_dataset(X_test, y_test, CLASS, False)
 
 # %% [markdown]
-# Create the confusion plot
+# Create diagrams for the balanced classifier
 
 # %%
-Xi, y_expected = get_dataset(X_test, y_test, CLASS, False)
-(tp, fp, fn, tn) = classifier1.get_confusion(Xi, y_expected)
+balanced = ClassifierBalanced(CLASS)
+balanced.load_weights()
+
+# %%
+(tp, fp, fn, tn) = balanced.get_confusion(Xi, yi_expected)
 plot_confusion(tp, fp, fn, tn)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.svg')
 plt.show()
-
-# %%
-classifier2 = ClassifierUnbalanced(CLASS)
-classifier2.load_weights()
-
-# %%
-Xi, y_expected = get_dataset(X_test, y_test, CLASS, False)
-(tp, fp, fn, tn) = classifier2.get_confusion(Xi, y_expected)
-plot_confusion(tp, fp, fn, tn)
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.png', dpi=163)
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.svg')
-plt.show()
-
-# %% [markdown]
-# Create the history plot
 
 # %%
 history1 = None
@@ -147,6 +134,26 @@ with open(f'results/history/{CLASS}_balanced.json', 'r') as fp:
 plot_history(history1)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.svg')
+plt.show()
+
+# %%
+yi_predict = balanced.get_prediction(Xi)
+fp_mask = np.logical_and(yi_predict == 1, yi_expected == 0)
+Xi_fp = np.apply_along_axis(from_token_ids, 1, Xi[fp_mask])
+np.savetxt(f'results/{CLASS}_balanced_false_positives.csv', Xi_fp, delimiter=',', fmt='%s')
+
+# %% [markdown]
+# Create diagrams for the unbalanced classifier
+
+# %%
+unbalanced = ClassifierUnbalanced(CLASS)
+unbalanced.load_weights()
+
+# %%
+(tp, fp, fn, tn) = unbalanced.get_confusion(Xi, yi_expected)
+plot_confusion(tp, fp, fn, tn)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.svg')
 plt.show()
 
 # %%
