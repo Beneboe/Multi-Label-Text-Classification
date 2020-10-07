@@ -25,6 +25,7 @@ Ensure that the project folder has the following directory structure:
     - tst.json
     - trn.json
   - GoogleNews-vectors-negative.bin.gz
+- 09 - Preprocess the AmazonCat-13k Dataset.py
 
 Where datasets folder contains the extracted archive files. Before running the script look for the `DATASET_TYPE` variable at the top of the file. To preprocess the train set change it to 'trn', for the test set change it to 'tst'.
 
@@ -43,6 +44,7 @@ Ensure that the project folder has the following directory structure:
   - history/
   - metrics/
   - weights/
+- 10 - Training the AmazonCat-13k Dataset.py
 
 Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
 
@@ -54,19 +56,3 @@ Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
 - 49 "21st century"
 - 81 "accessories" (28555 occurences)
 - 5960 "home improvement"
-
-## Todos
-
-### Todo 17-09
-
-- [x] Create a test file for the metrics file
-- [x] Generate a develop dataset
-- [x] Implement missing steps in train function
-- [x] Do a test run
-- [x] After the cutoff calculate the statistics again
-
-### Todo 18-09
-
-- [x] Solve issue where there are classes that never occur in trn.json because of cutoff
-- [x] Investigate (potential) low accuracy issue
-- [x] Write handover protocol

@@ -11,10 +11,12 @@ import matplotlib.pyplot as plt
 # %%
 CLASS_COUNT = 13330
 DATASET_TYPE = 'trn'
+ADD_CONTENT = True
 # CUTOFF is inclusive
 CUTOFF = 0 if DATASET_TYPE == 'trn' else 0
 INPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.json'
-OUTPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.processed.json'
+OUTPUT_SUFFIX = '.content' if ADD_CONTENT else ''
+OUTPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}{OUTPUT_SUFFIX}.processed.json'
 
 # %% [markdown]
 # First, load the dataset.
@@ -93,7 +95,9 @@ plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163
 # ## Preprocess the Dataset
 
 # %%
-X = preprocess(df['title'])
+if ADD_CONTENT:
+    df['title'] = df['title'].str.cat(df['content'], sep=' ')
+X = preprocess(  )
 y = df['target_ind']
 
 # %% [markdown]
@@ -137,7 +141,7 @@ ds_stats_index.append('token lengths (after cutoff)')
 ds_stats.append(get_stats(token_lens))
 
 stats_df = pd.DataFrame(ds_stats, index=ds_stats_index)
-stats_df.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}.csv')
+stats_df.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}{OUTPUT_SUFFIX}.csv')
 
 # %%
 df_processed = pd.DataFrame({ 'X': X, 'y': y })
