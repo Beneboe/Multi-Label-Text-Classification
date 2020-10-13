@@ -137,6 +137,22 @@ for (classifier_type, name) in classifiers:
     plt.savefig(f'datasets/imgs/classifier_{CLASS}_{name}_confusion.svg')
     plt.show()
 
+# %%
+fig, axs = plt.subplots(2, 2, figsize=(14,10))
+for i, (classifier_type, name) in enumerate(classifiers):
+    classifier = classifier_type(CLASS)
+    classifier.load_weights()
+    cm = classifier.get_confusion(Xi, yi_expected)
+    ax = axs[i // 2, i % 2]
+    plot_confusion(cm, ax)
+    title = ' '.join(word.capitalize() for word in name.split('_'))
+    ax.set_title(title)
+
+
+plt.tight_layout()
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_all_confusion.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_all_confusion.svg')
+
 # %% [markdown]
 # Create metrics comparison
 
