@@ -18,7 +18,7 @@ import numpy as np
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 
-rng = np.random.default_rng()
+rng = np.random.default_rng(42)
 
 df = pd.read_csv("datasets/ag_news_csv/train.processed.csv",
     index_col=0,

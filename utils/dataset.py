@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import gensim
 from keras.preprocessing.sequence import pad_sequences
-
-rng = np.random.default_rng()
+from numpy.random import default_rng
 
 def get_stats(a):
     return {
@@ -42,6 +41,8 @@ def is_negative(i):
     return lambda y: i not in y
 
 def get_dataset(X, y, i, balanced=True):
+    rng = default_rng(42)
+
     X_positive = X[y.map(is_positive(i))]
     X_negative = X[y.map(is_negative(i))]
 

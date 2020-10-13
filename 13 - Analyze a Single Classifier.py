@@ -7,6 +7,7 @@ from utils.text_preprocessing import from_token_ids
 from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
+from numpy.random import default_rng
 import utils.metrics as mt
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +23,6 @@ TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 EPOCHS = 30
 TRAINING_THRESHOLD = 2
 CLASS = 8842
-rng = np.random.default_rng()
 
 # %%
 X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
@@ -125,6 +125,7 @@ balanced.load_weights()
 # %%
 conf_mat = balanced.get_confusion(Xi, yi_expected)
 plot_confusion(conf_mat)
+plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.svg')
 plt.show()
@@ -134,6 +135,7 @@ history1 = None
 with open(f'results/history/{CLASS}_balanced.json', 'r') as fp:
     history1 = json.load(fp)
 plot_history(history1)
+plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.svg')
 plt.show()
@@ -154,6 +156,7 @@ unbalanced.load_weights()
 # %%
 conf_mat = unbalanced.get_confusion(Xi, yi_expected)
 plot_confusion(conf_mat)
+plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.svg')
 plt.show()
@@ -163,6 +166,7 @@ history2 = None
 with open(f'results/history/{CLASS}_unbalanced.json', 'r') as fp:
     history2 = json.load(fp)
 plot_history(history2)
+plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.svg')
 plt.show()
@@ -171,12 +175,13 @@ plt.show()
 # Create diagrams for the random classifier (0.5)
 
 # %%
-yi_predict = rng.uniform(size=yi_expected.shape[0])
+yi_predict = default_rng(42).uniform(size=yi_expected.shape[0])
 yi_predict = (yi_predict >= 0.5).astype('int32')
 
 # %%
-conf_mat = mt.get_confusion(yi_expected, yi_predict)
+conf_mat = mt.get_confusion(yi_predict, yi_expected)
 plot_confusion(conf_mat)
+plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.svg')
 plt.show()
@@ -187,12 +192,13 @@ plt.show()
 # %%
 freq_threshold = np.count_nonzero(yi_expected < 0.5) / yi_expected.shape[0]
 
-yi_predict = rng.uniform(size=yi_expected.shape[0])
+yi_predict = default_rng(42).uniform(size=yi_expected.shape[0])
 yi_predict = (yi_predict >= freq_threshold).astype('int32')
 
 # %%
-conf_mat = mt.get_confusion(yi_expected, yi_predict)
+conf_mat = mt.get_confusion(yi_predict, yi_expected)
 plot_confusion(conf_mat)
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.png', dpi=163)
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.svg')
+plt.tight_layout()
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(adjusted)_confusion.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(adjusted)_confusion.svg')
 plt.show()
