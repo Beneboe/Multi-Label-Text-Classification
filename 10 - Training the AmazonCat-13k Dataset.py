@@ -4,6 +4,7 @@ from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, Train
 from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
+import pandas as pd
 
 # %% [markdown]
 # # Training the AmazonCat-13k Dataset
@@ -102,10 +103,22 @@ trainer_unbalanced = Trainer(
 #     trainer_balanced.train(i)
 
 # %%
-CLASS = 8842
+trainer_balanced.train(8842)
 
 # %%
-trainer_balanced.train(CLASS)
+trainer_unbalanced.train(8842)
 
 # %%
-trainer_unbalanced.train(CLASS)
+# threshold, label, frequency
+threshold_data = [
+    (50,6554,50),
+    (100,4949,100),
+    (1000,7393,996),
+    (10000,84,9976),
+    (50000,9202,48521),
+    (100000,7083,96012),
+]
+
+# %%
+for _,label,_ in threshold_data:
+    trainer_balanced.train(label)
