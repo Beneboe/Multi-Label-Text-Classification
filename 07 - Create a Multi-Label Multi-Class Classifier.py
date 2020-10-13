@@ -58,7 +58,7 @@ for i in range(CLASS_COUNT):
 import keras
 class SimpleClassifier (keras.Sequential):
     def __init__(self, embedding_layer, d_units=8):
-        super(SimpleClassifier, self).__init__()
+        super().__init__()
 
         self.inner = keras.Sequential([
             keras.layers.Dense(units=d_units, activation='relu'),

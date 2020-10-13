@@ -1,6 +1,6 @@
 # %%
 from utils.dataset import import_dataset, import_embedding_layer, get_dataset
-from utils.models import BaseClassifier, Trainer
+from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, Trainer
 from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
@@ -31,32 +31,81 @@ embedding_layer = import_embedding_layer()
 # Define the model
 
 # %%
+# Model 1
 inner_model = Sequential([
-    Dense(units=8),
-    Flatten(),
+    LSTM(units=128),
+    Dense(units=32),
     Dense(units=1, activation='sigmoid'),
 ])
+
+# Model 2
+# inner_model = Sequential([
+#     LSTM(units=128, return_sequences=True),
+#     Dropout(0.5),
+#     LSTM(units=64),
+#     Dropout(0.5),
+#     Dense(units=1, activation='sigmoid'),
+# ])
+
+# Model 3
+# inner_model = Sequential([
+#     Dense(units=8),
+#     Dropout(0.5),
+#     Flatten(),
+#     Dense(units=1, activation='sigmoid'),
+# ])
 
 model = Sequential([
     InputLayer(input_shape=(INPUT_LENGTH,)),
     embedding_layer,
     inner_model
 ])
+
+# %%
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
     'accuracy',
     Recall(),
     Precision(),
 ])
 
-class Classifier(BaseClassifier):
+# %%
+class BalancedClassifier(BaseBalancedClassifier):
     def __init__(self, id):
-        super(Classifier, self).__init__(model, inner_model, id)
+        super().__init__(model, inner_model, id)
 
-trainer = Trainer(Classifier, X_train, y_train, X_test, y_test, threshold=TRAINING_THRESHOLD, epochs=EPOCHS)
+class UnbalancedClassifier(BaseUnbalancedClassifier):
+    def __init__(self, id):
+        super().__init__(model, inner_model, id)
+
+# %%
+trainer_balanced = Trainer(
+    BalancedClassifier,
+    X_train, y_train,
+    X_test, y_test,
+    train_balance=True,
+    threshold=TRAINING_THRESHOLD,
+    epochs=EPOCHS)
+
+trainer_unbalanced = Trainer(
+    UnbalancedClassifier,
+    X_train, y_train,
+    X_test, y_test,
+    train_balance=False,
+    threshold=TRAINING_THRESHOLD,
+    epochs=EPOCHS)
 
 # %% [markdown]
 # Actually train the classifiers.
 
 # %%
-for i in range(CLASS_COUNT):
-    trainer.train(i)
+# for i in range(CLASS_COUNT):
+#     trainer_balanced.train(i)
+
+# %%
+CLASS = 8842
+
+# %%
+trainer_balanced.train(CLASS)
+
+# %%
+trainer_unbalanced.train(CLASS)
