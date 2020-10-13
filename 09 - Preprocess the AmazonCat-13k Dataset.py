@@ -52,22 +52,16 @@ print("Count (expected):", CLASS_COUNT)
 # %%
 vlen = np.vectorize(len)
 
-ds_stats_index = []
-ds_stats = []
-
 freqs = class_frequencies(CLASS_COUNT, df['target_ind'])
-ds_stats_index.append('class frequencies')
-ds_stats.append(get_stats(freqs))
 
-ds_stats_index.append('title char lengths')
-ds_stats.append(get_stats(vlen(df['title'])))
+stats = [
+    ('title char lengths', get_stats(vlen(df['title']))),
+    ('content char lengths', get_stats(vlen(df['content']))),
+    ('class frequencies', get_stats(freqs)),
+    ('instance class count', get_stats(df['target_ind'].map(len))),
+]
 
-ds_stats_index.append('content char lengths')
-ds_stats.append(get_stats(vlen(df['content'])))
-
-ds_stats_index.append('instance class count')
-ds_stats.append(get_stats(df['target_ind'].map(len)))
-
+ds_stats, ds_stats_index = zip(*stats)
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
 # %% [markdown]
@@ -97,7 +91,7 @@ plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163
 # %%
 if ADD_CONTENT:
     df['title'] = df['title'].str.cat(df['content'], sep=' ')
-X = preprocess(  )
+X = preprocess(df['title'])
 y = df['target_ind']
 
 # %% [markdown]
@@ -106,9 +100,9 @@ y = df['target_ind']
 # %%
 token_lens = vlen(X)
 
-ds_stats_index.append('token lengths')
-ds_stats.append(get_stats(token_lens))
+stats.append(('token lengths', get_stats(token_lens)))
 
+ds_stats, ds_stats_index = zip(*stats)
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
 # %% [markdown]
@@ -131,15 +125,13 @@ y = y[indices]
 # %%
 token_lens = vlen(X)
 
-ds_stats_index.append('class frequencies (after cutoff)')
-ds_stats.append(get_stats(class_frequencies(CLASS_COUNT, y)))
+stats.extend([
+    ('class frequencies (after cutoff)', get_stats(class_frequencies(CLASS_COUNT, y)))
+    ('instance class count (after cutoff)', get_stats(y.map(len)))
+    ('token lengths (after cutoff)', get_stats(token_lens))
+])
 
-ds_stats_index.append('instance class count (after cutoff)')
-ds_stats.append(get_stats(y.map(len)))
-
-ds_stats_index.append('token lengths (after cutoff)')
-ds_stats.append(get_stats(token_lens))
-
+ds_stats, ds_stats_index = zip(*stats)
 stats_df = pd.DataFrame(ds_stats, index=ds_stats_index)
 stats_df.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}{OUTPUT_SUFFIX}.csv')
 
