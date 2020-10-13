@@ -1,4 +1,5 @@
 # %%
+from numpy.core.fromnumeric import shape
 from utils.dataset import import_dataset, import_embedding_layer, get_dataset
 from utils.plots import plot_confusion, plot_history
 from utils.models import BaseClassifier, Trainer
@@ -21,6 +22,7 @@ TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 EPOCHS = 30
 TRAINING_THRESHOLD = 2
 CLASS = 8842
+rng = np.random.default_rng()
 
 # %%
 X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
@@ -165,4 +167,32 @@ plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.svg')
 plt.show()
 
+# %% [markdown]
+# Create diagrams for the random classifier (0.5)
+
 # %%
+yi_predict = rng.uniform(size=yi_expected.shape[0])
+yi_predict = (yi_predict >= 0.5).astype('int32')
+
+# %%
+conf_mat = mt.get_confusion(yi_expected, yi_predict)
+plot_confusion(conf_mat)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.svg')
+plt.show()
+
+# %% [markdown]
+# Create diagrams for the random classifier (frequency adjusted)
+
+# %%
+freq_threshold = np.count_nonzero(yi_expected < 0.5) / yi_expected.shape[0]
+
+yi_predict = rng.uniform(size=yi_expected.shape[0])
+yi_predict = (yi_predict >= freq_threshold).astype('int32')
+
+# %%
+conf_mat = mt.get_confusion(yi_expected, yi_predict)
+plot_confusion(conf_mat)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.png', dpi=163)
+plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.svg')
+plt.show()
