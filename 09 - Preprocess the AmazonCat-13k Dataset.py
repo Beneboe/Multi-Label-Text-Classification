@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # %%
 CLASS_COUNT = 13330
 DATASET_TYPE = 'trn'
-ADD_CONTENT = True
+ADD_CONTENT = False
 # CUTOFF is inclusive
 CUTOFF = 0 if DATASET_TYPE == 'trn' else 0
 INPUT_PATH = f'datasets/AmazonCat-13K/{DATASET_TYPE}.json'
@@ -61,7 +61,7 @@ stats = [
     ('instance class count', get_stats(df['target_ind'].map(len))),
 ]
 
-ds_stats, ds_stats_index = zip(*stats)
+ds_stats_index, ds_stats = zip(*stats)
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
 # %% [markdown]
@@ -102,7 +102,7 @@ token_lens = vlen(X)
 
 stats.append(('token lengths', get_stats(token_lens)))
 
-ds_stats, ds_stats_index = zip(*stats)
+ds_stats_index, ds_stats = zip(*stats)
 pd.DataFrame(ds_stats, index=ds_stats_index)
 
 # %% [markdown]
@@ -126,21 +126,44 @@ y = y[indices]
 token_lens = vlen(X)
 
 stats.extend([
-    ('class frequencies (after cutoff)', get_stats(class_frequencies(CLASS_COUNT, y)))
-    ('instance class count (after cutoff)', get_stats(y.map(len)))
-    ('token lengths (after cutoff)', get_stats(token_lens))
+    ('class frequencies (after cutoff)', get_stats(class_frequencies(CLASS_COUNT, y))),
+    ('instance class count (after cutoff)', get_stats(y.map(len))),
+    ('token lengths (after cutoff)', get_stats(token_lens)),
 ])
 
-ds_stats, ds_stats_index = zip(*stats)
+ds_stats_index, ds_stats = zip(*stats)
 stats_df = pd.DataFrame(ds_stats, index=ds_stats_index)
 stats_df.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}{OUTPUT_SUFFIX}.csv')
+
+# %% [markdown]
+# Calculate the labels below a set of frequency thresholds
+
+# %%
+freqs_args = np.argsort(freqs)
+
+def freqs_args_below(threshold):
+    # Index before which all indexes point to frequences below the threshold
+    i = np.searchsorted(freqs, threshold, side='right', sorter=freqs_args)
+    # return freqs_args[i-1:0:-1]
+    return freqs_args[i-1]
+
+vfreqs_args_below = np.vectorize(freqs_args_below)
+
+# %%
+thresholds = [50, 100, 1_000, 10_000, 50_000, 100_000]
+labels = vfreqs_args_below(thresholds)
+
+threshold_labels = pd.DataFrame(
+    { 'label': labels, 'frequency': freqs[labels] },
+    index=pd.Index(thresholds, name='threshold'))
+threshold_labels.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}_thresholds.csv')
+
+# %% [markdown]
+# Save the dataset
 
 # %%
 df_processed = pd.DataFrame({ 'X': X, 'y': y })
 df_processed
-
-# %% [markdown]
-# Save the dataset
 
 # %%
 df_processed.to_json(OUTPUT_PATH, orient='records', lines=True)
