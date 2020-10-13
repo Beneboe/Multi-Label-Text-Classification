@@ -11,6 +11,7 @@ from numpy.random import default_rng
 import utils.metrics as mt
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import json
 
 # %%
@@ -123,8 +124,8 @@ balanced = ClassifierBalanced(CLASS)
 balanced.load_weights()
 
 # %%
-conf_mat = balanced.get_confusion(Xi, yi_expected)
-plot_confusion(conf_mat)
+cm1 = balanced.get_confusion(Xi, yi_expected)
+plot_confusion(cm1)
 plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.svg')
@@ -140,6 +141,9 @@ plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.svg')
 plt.show()
 
+# %% [markdown]
+# Save the false positives
+
 # %%
 yi_predict = balanced.get_prediction(Xi)
 fp_mask = np.logical_and(yi_predict == 1, yi_expected == 0)
@@ -154,8 +158,8 @@ unbalanced = ClassifierUnbalanced(CLASS)
 unbalanced.load_weights()
 
 # %%
-conf_mat = unbalanced.get_confusion(Xi, yi_expected)
-plot_confusion(conf_mat)
+cm2 = unbalanced.get_confusion(Xi, yi_expected)
+plot_confusion(cm2)
 plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.svg')
@@ -175,12 +179,13 @@ plt.show()
 # Create diagrams for the random classifier (0.5)
 
 # %%
-yi_predict = default_rng(42).uniform(size=yi_expected.shape[0])
-yi_predict = (yi_predict >= 0.5).astype('int32')
+yi_predict_rand1 = default_rng(42).uniform(size=yi_expected.shape[0])
+yi_predict_rand1 = (yi_predict_rand1 >= 0.5).astype('int32')
+metrics3 = mt.all_metrics(yi_predict_rand1, yi_expected)
 
 # %%
-conf_mat = mt.get_confusion(yi_predict, yi_expected)
-plot_confusion(conf_mat)
+cm3 = mt.get_confusion(yi_predict_rand1, yi_expected)
+plot_confusion(cm3)
 plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(0.5)_confusion.svg')
@@ -192,13 +197,30 @@ plt.show()
 # %%
 freq_threshold = np.count_nonzero(yi_expected < 0.5) / yi_expected.shape[0]
 
-yi_predict = default_rng(42).uniform(size=yi_expected.shape[0])
-yi_predict = (yi_predict >= freq_threshold).astype('int32')
+yi_predict_rand2 = default_rng(42).uniform(size=yi_expected.shape[0])
+yi_predict_rand2 = (yi_predict_rand2 >= freq_threshold).astype('int32')
+
+metrics4 = mt.all_metrics(yi_predict_rand2, yi_expected)
 
 # %%
-conf_mat = mt.get_confusion(yi_predict, yi_expected)
-plot_confusion(conf_mat)
+cm4 = mt.get_confusion(yi_predict_rand2, yi_expected)
+plot_confusion(cm4)
 plt.tight_layout()
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(adjusted)_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_random(adjusted)_confusion.svg')
 plt.show()
+
+# %% [markdown]
+# Create metrics comparison
+
+metric_comparison = pd.DataFrame([
+    ClassifierBalanced(CLASS).load_metrics(),
+    ClassifierUnbalanced(CLASS).load_metrics(),
+    metrics3,
+    metrics4,
+], index=pd.Index(['Balanced', 'Unbalanced', 'Random(0.5)', 'Random(Adjusted)']))
+
+metric_comparison.to_csv(f'results/{CLASS}_metric_comparison.csv')
+metric_comparison
+
+# %%

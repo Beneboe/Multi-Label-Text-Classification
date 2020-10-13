@@ -33,13 +33,7 @@ class BaseClassifier:
     def save_metrics(self, X, y_expected):
         y_predict = mt.get_prediction(self.model, X)
 
-        metrics = {
-            'count': mt.count(y_predict, y_expected),
-            'accuracy': mt.accuracy(y_predict, y_expected),
-            'recall': mt.recall(y_predict, y_expected),
-            'precision': mt.precision(y_predict, y_expected),
-            'f1 measure': mt.f1measure(y_predict, y_expected),
-        }
+        metrics = mt.all_metrics(y_predict, y_expected)
 
         with open(self.get_metrics_path(), 'w') as fp:
             json.dump(metrics, fp)

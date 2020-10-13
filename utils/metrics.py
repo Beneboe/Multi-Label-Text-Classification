@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Any
 import numpy as np
 
 # Helper functions
@@ -46,6 +46,15 @@ def f1measure(y_predict, y_expected) -> float:
     pr = precision(y_predict, y_expected)
     rc = recall(y_predict, y_expected)
     return 2 * (pr * rc) / (pr + rc)
+
+def all_metrics(y_predict, y_expected) -> Dict[str, Any]:
+    return {
+        'count': count(y_predict, y_expected),
+        'accuracy': accuracy(y_predict, y_expected),
+        'recall': recall(y_predict, y_expected),
+        'precision': precision(y_predict, y_expected),
+        'f1 measure': f1measure(y_predict, y_expected),
+    }
 
 def macro_f1measure(y_predict, y_expected) -> float:
     class_count = y_expected.T.shape[0]
