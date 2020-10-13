@@ -121,8 +121,8 @@ balanced = ClassifierBalanced(CLASS)
 balanced.load_weights()
 
 # %%
-(tp, fp, fn, tn) = balanced.get_confusion(Xi, yi_expected)
-plot_confusion(tp, fp, fn, tn)
+conf_mat = balanced.get_confusion(Xi, yi_expected)
+plot_confusion(conf_mat)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_confusion.svg')
 plt.show()
@@ -150,8 +150,8 @@ unbalanced = ClassifierUnbalanced(CLASS)
 unbalanced.load_weights()
 
 # %%
-(tp, fp, fn, tn) = unbalanced.get_confusion(Xi, yi_expected)
-plot_confusion(tp, fp, fn, tn)
+conf_mat = unbalanced.get_confusion(Xi, yi_expected)
+plot_confusion(conf_mat)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.png', dpi=163)
 plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_confusion.svg')
 plt.show()
