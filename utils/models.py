@@ -153,7 +153,7 @@ class Trainer:
         self.epochs = epochs
         self.batch_size = batch_size
 
-        self.callbacks = [EarlyStopping(monitor='loss', patience=3)]
+        self.callbacks = [EarlyStopping(monitor='loss', patience=3, min_delta=0.0001)]
 
     def train(self, i):
         print(f'Processing classifier {i}...')
