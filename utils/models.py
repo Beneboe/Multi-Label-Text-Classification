@@ -1,6 +1,7 @@
 from utils.dataset import get_dataset
 from numpy.random import default_rng
 from sklearn.model_selection import train_test_split
+from keras.callbacks import EarlyStopping
 import utils.metrics as mt
 import numpy as np
 import json
@@ -152,6 +153,8 @@ class Trainer:
         self.epochs = epochs
         self.batch_size = batch_size
 
+        self.callbacks = [EarlyStopping(monitor='loss', patience=3)]
+
     def train(self, i):
         print(f'Processing classifier {i}...')
 
@@ -165,7 +168,10 @@ class Trainer:
         # Only split and train dataset if there is enough data
         if Xi.shape[0] > self.threshold:
             # Train the classifier and save the history
-            classifier.fit(Xi, yi, epochs=self.epochs, verbose=1, batch_size=self.batch_size)
+            classifier.fit(
+                Xi, yi, 
+                epochs=self.epochs, batch_size=self.batch_size, callbacks=self.callbacks,
+                verbose=1)
 
             # Save the weights
             classifier.save_weights()

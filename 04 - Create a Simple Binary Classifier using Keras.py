@@ -100,6 +100,7 @@ plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
 # %%
+from utils.text_preprocessing import to_token_id
 text1 = df['text'].loc[0]
 text1 = to_token_id(text1)
 text1 = keras.preprocessing.sequence.pad_sequences([text1], maxlen=INPUT_LENGTH)

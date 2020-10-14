@@ -12,20 +12,14 @@ import pandas as pd
 
 # %%
 INPUT_LENGTH = 100
-VALIDATION_SPLIT = 0.2
 CLASS_COUNT = 13330
-# CLASS_COUNT = 30
-TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
-TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
-EPOCHS = 10
-TRAINING_THRESHOLD = 10
 
 # %% [markdown]
 # Import the dataset and the embedding layer
 
 # %%
-X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
-X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
+X_train, y_train = import_dataset('datasets/AmazonCat-13K/trn.processed.json', INPUT_LENGTH)
+X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
 embedding_layer = import_embedding_layer()
 
 # %% [markdown]
@@ -65,8 +59,8 @@ model = Sequential([
 # %%
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
     'accuracy',
-    Recall(),
-    Precision(),
+    'Recall',
+    'Precision',
 ])
 
 # %%
@@ -83,17 +77,13 @@ trainer_balanced = Trainer(
     BalancedClassifier,
     X_train, y_train,
     X_test, y_test,
-    train_balance=True,
-    threshold=TRAINING_THRESHOLD,
-    epochs=EPOCHS)
+    train_balance=True)
 
 trainer_unbalanced = Trainer(
     UnbalancedClassifier,
     X_train, y_train,
     X_test, y_test,
-    train_balance=False,
-    threshold=TRAINING_THRESHOLD,
-    epochs=EPOCHS)
+    train_balance=False)
 
 # %% [markdown]
 # Actually train the classifiers.
