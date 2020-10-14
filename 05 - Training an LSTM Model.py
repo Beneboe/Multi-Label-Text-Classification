@@ -21,7 +21,7 @@ from keras.preprocessing.sequence import pad_sequences
 INPUT_LENGTH = 100
 VALIDATION_SPLIT = 0.2
 
-df = pd.read_csv("datasets/ag_news_csv/train.processed.csv",
+df = pd.read_csv('datasets/ag_news_csv/train.processed.csv',
     index_col=0,
     converters={"text": lambda x: x.strip("[]").replace("'","").split(", ")})
 
