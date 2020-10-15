@@ -112,3 +112,4 @@ threshold_data = [
 # %%
 for _,label,_ in threshold_data:
     trainer_balanced.train(label)
+    trainer_unbalanced.train(label)

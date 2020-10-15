@@ -24,7 +24,6 @@ TRAINING_THRESHOLD = 2
 inner_model = Sequential([])
 model = Sequential([])
 
-
 # %% [markdown]
 # Define the model
 
