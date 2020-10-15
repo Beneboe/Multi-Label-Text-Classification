@@ -5,15 +5,23 @@ from keras.preprocessing.sequence import pad_sequences
 from numpy.random import default_rng
 
 def get_stats(a):
+    amax = a.max()
+    amin = a.min()
+    amean = a.mean()
+    amedian = np.median(a)
+
     return {
-        'max': a.max(),
-        'min': a.min(),
-        'mean': a.mean(),
-        'max count': np.count_nonzero(a == a.max()),
-        'min count': np.count_nonzero(a == a.min()),
-        'mean count': np.count_nonzero(a == np.round(a.mean())),
+        'max': amax,
+        'min': amin,
+        'mean': amean,
+        'median': amedian,
+        'max count': np.count_nonzero(a == amax),
+        'min count': np.count_nonzero(a == amin),
+        'mean count': np.count_nonzero(a == np.round(amean)),
+        'median count': np.count_nonzero(a == amedian),
         'max arg': a.argmax(),
         'min arg': a.argmin(),
+        'deviation': np.std(a),
     }
 
 def class_frequencies(count, labels_array):

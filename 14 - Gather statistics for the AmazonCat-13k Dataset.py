@@ -65,12 +65,20 @@ plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_boxplot.png', dpi=163)
 
 # %%
 sorted = np.sort(freqs_before)
+freqs_mean = np.mean(sorted)
+freqs_median = np.median(sorted)
 
 fig2, ax2 = plt.subplots()
-ax2.set_title('Class frequencies')
-plt.yscale('log')
+ax2.set_title('Label frequencies')
+ax2.set_yscale('log')
+ax2.set_xlabel('Labels (sorted by occurence)')
+ax2.set_ylabel('Occurences')
+ax2.hlines(freqs_mean, 0, 1, transform=ax2.get_yaxis_transform(), color='tab:brown', linestyles='dashed')
+ax2.hlines(freqs_median, 0, 1, transform=ax2.get_yaxis_transform(), color='tab:olive', linestyles='dashed')
+# ax2.text(0, freqs_median, 'median', ha='left', va='bottom')
+ax2.legend(['mean', 'median'], loc='lower right')
 ax2.plot(np.arange(sorted.shape[0]), sorted)
-plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163)
+fig2.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163)
 
 # %% [markdown]
 # Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
