@@ -1,6 +1,6 @@
 # Multi-label Text Classification
 
-## Prerequisite
+## Requirements
 
 - Python 3.8
 - All the modules in `requirements.txt`
@@ -27,11 +27,14 @@ Ensure that the project folder has the following directory structure:
   - GoogleNews-vectors-negative.bin.gz
 - 09 - Preprocess the AmazonCat-13k Dataset.py
 
-Where datasets folder contains the extracted archive files. Before running the script look for the `DATASET_TYPE` variable at the top of the file. To preprocess the train set change it to 'trn', for the test set change it to 'tst'.
+The datasets folder contains the extracted archive files. Run task `09 - Preprocess the AmazonCat-13k Dataset`. This should create the following files in the *datasets/AmazonCat-13K* folder:
 
-Finally, run the *09 - Preprocess the AmazonCat-13k Dataset.py* file.
+- tst.before.json
+- tst.processed.json
+- trn.before.json
+- trn.processed.json
 
-## Training classifiers for the AmazonCat-13K dataset
+## Training classifiers with the AmazonCat-13K dataset
 
 Ensure that the project folder has the following directory structure:
 
@@ -46,7 +49,7 @@ Ensure that the project folder has the following directory structure:
   - weights/
 - 10 - Training the AmazonCat-13k Dataset.py
 
-Finally, run the *10 - Training the AmazonCat-13k Dataset.py* file.
+Before running the training, the dataset needs to be [preprocessed](#preprocessing-the-amazoncat-13k-dataset). To train the models, run the task `10 - Training the AmazonCat-13k Dataset`.
 
 ## Sample Classes that Occur at least 10,000 times
 
