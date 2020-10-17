@@ -111,7 +111,7 @@ class RandomClassifier:
         return y_predict
 
     def get_metrics(self, X, y_expected):
-        y_predict = self.get_prediction(self.model, X)
+        y_predict = self.get_prediction(X)
         metrics = mt.all_metrics(y_predict, y_expected)
         return metrics
 
@@ -169,7 +169,7 @@ class Trainer:
         if Xi.shape[0] > self.threshold:
             # Train the classifier and save the history
             classifier.fit(
-                Xi, yi, 
+                Xi, yi,
                 epochs=self.epochs, batch_size=self.batch_size, callbacks=self.callbacks,
                 verbose=1)
 
