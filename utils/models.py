@@ -135,7 +135,7 @@ class BaseClassifier:
             self.save_weights()
 
         # Save the metrics
-        Xi_test, yi_test = get_dataset(X_test, y_test, self.id, balanced=False)
+        Xi_test, yi_test = get_dataset(X_test, y_test, self.id)
         self.save_metrics(Xi_test, yi_test)
 
 class BaseBalancedClassifier(BaseClassifier):
