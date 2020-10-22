@@ -80,7 +80,7 @@ class UnbalancedClassifier(BaseUnbalancedClassifier):
         super().__init__(model, inner_model, id)
 
 # %%
-Xi, yi_expected = get_dataset(X_test, y_test, CLASS, False)
+Xi, yi_expected = get_dataset(X_test, y_test, CLASS)
 
 # %% [markdown]
 # Plot the history diagrams

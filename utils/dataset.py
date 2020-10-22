@@ -48,15 +48,18 @@ def is_positive(i):
 def is_negative(i):
     return lambda y: i not in y
 
-def get_dataset(X, y, i, balanced=True):
+def get_dataset(X, y, i, p_weight=None):
     rng = default_rng(42)
 
     X_positive = X[y.map(is_positive(i))]
     X_negative = X[y.map(is_negative(i))]
 
     # Subsample negative indices
-    if balanced:
-        X_negative = rng.choice(X_negative, X_positive.shape[0], replace=False)
+    if p_weight is not None:
+        p_count = min(int(X.shape[0] * p_weight), X_positive.shape[0])
+        n_count = int(p_count * ((1 - p_weight) / p_weight))
+
+        X_negative = rng.choice(X_negative, n_count, replace=False)
 
     y_positive = np.ones(X_positive.shape[0], dtype='int8')
     y_negative = np.zeros(X_negative.shape[0], dtype='int8')

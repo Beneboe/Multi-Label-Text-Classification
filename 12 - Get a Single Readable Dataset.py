@@ -7,10 +7,9 @@ from utils.text_preprocessing import from_token_ids
 PATH = 'datasets/AmazonCat-13K/tst.processed.json'
 OUTPUT_PATH = 'datasets/AmazonCat-13K/tst(8842).processed.text.json'
 CLASS = 8842
-BALANCE = False
 
 X, y = import_dataset(PATH, 10)
-Xi, yi = get_dataset(X, y, 8842, balanced=BALANCE)
+Xi, yi = get_dataset(X, y, 8842)
 
 mXi = np.apply_along_axis(from_token_ids, 1, Xi)
 

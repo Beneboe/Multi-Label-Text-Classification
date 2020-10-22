@@ -147,7 +147,7 @@ class Trainer:
         self.X_test = X_test
         self.y_test = y_test
 
-        self.train_balance = train_balance
+        self.p_weight = 0.5 if train_balance else None
 
         self.threshold = threshold
         self.epochs = epochs
@@ -163,7 +163,7 @@ class Trainer:
         classifier.summary()
 
         # Get the dataset
-        Xi, yi = get_dataset(self.X_train, self.y_train, i, balanced=self.train_balance)
+        Xi, yi = get_dataset(self.X_train, self.y_train, i, self.p_weight)
 
         # Only split and train dataset if there is enough data
         if Xi.shape[0] > self.threshold:
