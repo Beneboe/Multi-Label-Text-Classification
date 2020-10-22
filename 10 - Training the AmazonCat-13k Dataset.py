@@ -99,7 +99,8 @@ trainer_balanced.train(8842)
 trainer_unbalanced.train(8842)
 
 # %%
-# threshold, label, frequency
+# Labels just below certain thresholds
+# Order: threshold, label, frequency
 threshold_data = [
     (50,6554,50),
     (100,4949,100),
@@ -110,6 +111,28 @@ threshold_data = [
 ]
 
 # %%
+# Top 10 most frequent labels ordered from most to least frequent
+# Order: label, frequency
+top10_label_data = [
+    (1471,355211)
+    (7961,194561)
+    (7892,128026)
+    (9237,120090)
+    # (7083,97803) # duplicate
+    (7891,88967)
+    (4038,76277)
+    (10063,75035)
+    (12630,71667)
+]
+
+# %%
+# Train threshold labels
 for _,label,_ in threshold_data:
+    trainer_balanced.train(label)
+    trainer_unbalanced.train(label)
+
+# %%
+# Train most frequent labels
+for label,_ in top10_label_data:
     trainer_balanced.train(label)
     trainer_unbalanced.train(label)

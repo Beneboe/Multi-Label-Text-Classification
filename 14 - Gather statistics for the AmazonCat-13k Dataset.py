@@ -126,3 +126,14 @@ threshold_labels = pd.DataFrame(
     { 'label': labels, 'frequency': freqs_after[labels] },
     index=pd.Index(thresholds, name='threshold'))
 threshold_labels.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}_thresholds.csv')
+
+# %% [markdown]
+# Calculate the top 10 most frequent labels
+freqs_args_before = np.argsort(freqs_before)
+
+top10freq_id = freqs_args_before[:-10:-1]
+
+top10freqs = pd.DataFrame(
+    { 'label': top10freq_id, 'frequency': freqs_before[top10freq_id] }
+)
+top10freqs.to_csv(f'datasets/stats/AmazonCat-13K_{DATASET_TYPE}_top10.csv')
