@@ -1,13 +1,8 @@
 # %%
-from utils.dataset import import_dataset, import_embedding_layer, get_dataset
+from utils.dataset import import_dataset, get_dataset
 from utils.plots import plot_confusion, plot_history
-from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, BalancedRandomClassifier, UnbalancedRandomClassifier
+from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, BalancedRandomClassifier, UnbalancedRandomClassifier, load_model
 from utils.text_preprocessing import from_token_ids
-from keras import Sequential
-from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
-from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
-from numpy.random import default_rng
-import utils.metrics as mt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -15,60 +10,15 @@ import json
 
 # %%
 INPUT_LENGTH = 10
-VALIDATION_SPLIT = 0.2
-CLASS_COUNT = 13330
 # CLASS_COUNT = 30
-TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
-TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
-EPOCHS = 30
-TRAINING_THRESHOLD = 2
 CLASS = 8842
 
 # %%
-X_train, y_train = import_dataset(TRAIN_PATH, INPUT_LENGTH)
-X_test, y_test = import_dataset(TEST_PATH, INPUT_LENGTH)
-embedding_layer = import_embedding_layer()
+X_train, y_train = import_dataset('datasets/AmazonCat-13K/trn.processed.json', INPUT_LENGTH)
+X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
 
 # %%
-# Model 1
-inner_model = Sequential([
-    LSTM(units=128),
-    Dense(units=32),
-    Dense(units=1, activation='sigmoid'),
-])
-
-# Model 2
-# inner_model = Sequential([
-#     LSTM(units=128, return_sequences=True),
-#     Dropout(0.5),
-#     LSTM(units=64),
-#     Dropout(0.5),
-#     Dense(units=1, activation='sigmoid'),
-# ])
-
-# Model 3
-# inner_model = Sequential([
-#     Dense(units=8),
-#     Dropout(0.5),
-#     Flatten(),
-#     Dense(units=1, activation='sigmoid'),
-# ])
-
-model = Sequential([
-    InputLayer(input_shape=(INPUT_LENGTH,)),
-    embedding_layer,
-    inner_model
-])
-
-# %%
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
-    'accuracy',
-    'Recall',
-    'Precision',
-])
-
-# %% [markdown]
-# Define the models
+model, inner_model = load_model(INPUT_LENGTH)
 
 # %%
 class BalancedClassifier(BaseBalancedClassifier):

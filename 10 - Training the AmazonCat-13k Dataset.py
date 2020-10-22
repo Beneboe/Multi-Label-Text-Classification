@@ -1,10 +1,6 @@
 # %%
-from utils.dataset import import_dataset, import_embedding_layer, get_dataset
-from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, Trainer
-from keras import Sequential
-from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
-from keras.metrics import Recall, Precision, TrueNegatives, TruePositives
-import pandas as pd
+from utils.dataset import import_dataset
+from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, load_model
 
 # %% [markdown]
 # # Training the AmazonCat-13k Dataset
@@ -20,48 +16,12 @@ CLASS_COUNT = 13330
 # %%
 X_train, y_train = import_dataset('datasets/AmazonCat-13K/trn.processed.json', INPUT_LENGTH)
 X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
-embedding_layer = import_embedding_layer()
 
 # %% [markdown]
 # Define the model
 
 # %%
-# Model 1
-inner_model = Sequential([
-    LSTM(units=128),
-    Dense(units=32),
-    Dense(units=1, activation='sigmoid'),
-])
-
-# Model 2
-# inner_model = Sequential([
-#     LSTM(units=128, return_sequences=True),
-#     Dropout(0.5),
-#     LSTM(units=64),
-#     Dropout(0.5),
-#     Dense(units=1, activation='sigmoid'),
-# ])
-
-# Model 3
-# inner_model = Sequential([
-#     Dense(units=8),
-#     Dropout(0.5),
-#     Flatten(),
-#     Dense(units=1, activation='sigmoid'),
-# ])
-
-model = Sequential([
-    InputLayer(input_shape=(INPUT_LENGTH,)),
-    embedding_layer,
-    inner_model
-])
-
-# %%
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=[
-    'accuracy',
-    'Recall',
-    'Precision',
-])
+model, inner_model = load_model(INPUT_LENGTH)
 
 # %%
 class BalancedClassifier(BaseBalancedClassifier):
@@ -72,19 +32,6 @@ class UnbalancedClassifier(BaseUnbalancedClassifier):
     def __init__(self, id):
         super().__init__(model, inner_model, id)
 
-# %%
-trainer_balanced = Trainer(
-    BalancedClassifier,
-    X_train, y_train,
-    X_test, y_test,
-    train_balance=True)
-
-trainer_unbalanced = Trainer(
-    UnbalancedClassifier,
-    X_train, y_train,
-    X_test, y_test,
-    train_balance=False)
-
 # %% [markdown]
 # Actually train the classifiers.
 
@@ -93,10 +40,12 @@ trainer_unbalanced = Trainer(
 #     trainer_balanced.train(i)
 
 # %%
-trainer_balanced.train(8842)
+print("Train the classifier for 8842")
+print("================================================================================")
+BalancedClassifier(8842).train(X_train, y_train, X_test, y_test)
 
 # %%
-trainer_unbalanced.train(8842)
+UnbalancedClassifier(8842).train(X_train, y_train, X_test, y_test)
 
 # %%
 # Labels just below certain thresholds
@@ -126,13 +75,29 @@ top10_label_data = [
 ]
 
 # %%
-# Train threshold labels
+print()
+print("Balanced training for different threshold labels")
+print("================================================================================")
 for _,label,_ in threshold_data:
-    trainer_balanced.train(label)
-    trainer_unbalanced.train(label)
+    BalancedClassifier(label).train(X_train, y_train, X_test, y_test)
 
 # %%
-# Train most frequent labels
+print()
+print("Unbalanced training for different threshold labels")
+print("================================================================================")
+for _,label,_ in threshold_data:
+    UnbalancedClassifier(label).train(X_train, y_train, X_test, y_test)
+
+# %%
+print()
+print("Balanced training for most frequent labels")
+print("================================================================================")
 for label,_ in top10_label_data:
-    trainer_balanced.train(label)
-    trainer_unbalanced.train(label)
+    BalancedClassifier(label).train(X_train, y_train, X_test, y_test)
+
+# %%
+print()
+print("Unbalanced training for most frequent labels")
+print("================================================================================")
+for label,_ in top10_label_data:
+    UnbalancedClassifier(label).train(X_train, y_train, X_test, y_test)
