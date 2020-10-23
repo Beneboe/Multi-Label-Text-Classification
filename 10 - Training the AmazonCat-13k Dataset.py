@@ -1,6 +1,6 @@
 # %%
 from utils.dataset import import_dataset
-from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, load_model
+from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, BaseWeightedClassifier, load_model
 
 # %% [markdown]
 # # Training the AmazonCat-13k Dataset
@@ -28,6 +28,14 @@ class BalancedClassifier(BaseBalancedClassifier):
     def __init__(self, id):
         super().__init__(model, inner_model, id)
 
+class Weighted10Classifier(BaseWeightedClassifier):
+    def __init__(self, id):
+        super().__init__(model, inner_model, id, 0.10)
+
+class Weighted20Classifier(BaseWeightedClassifier):
+    def __init__(self, id):
+        super().__init__(model, inner_model, id, 0.20)
+
 class UnbalancedClassifier(BaseUnbalancedClassifier):
     def __init__(self, id):
         super().__init__(model, inner_model, id)
@@ -40,9 +48,17 @@ class UnbalancedClassifier(BaseUnbalancedClassifier):
 #     trainer_balanced.train(i)
 
 # %%
+print("================================================================================")
 print("Train the classifier for 8842")
 print("================================================================================")
 BalancedClassifier(8842).train(X_train, y_train, X_test, y_test)
+
+
+# %%
+Weighted10Classifier(8842).train(X_train, y_train, X_test, y_test)
+
+# %%
+Weighted20Classifier(8842).train(X_train, y_train, X_test, y_test)
 
 # %%
 UnbalancedClassifier(8842).train(X_train, y_train, X_test, y_test)
@@ -76,6 +92,7 @@ top10_label_data = [
 
 # %%
 print()
+print("================================================================================")
 print("Balanced training for different threshold labels")
 print("================================================================================")
 for _,label,_ in threshold_data:
@@ -83,6 +100,7 @@ for _,label,_ in threshold_data:
 
 # %%
 print()
+print("================================================================================")
 print("Unbalanced training for different threshold labels")
 print("================================================================================")
 for _,label,_ in threshold_data:
@@ -90,6 +108,7 @@ for _,label,_ in threshold_data:
 
 # %%
 print()
+print("================================================================================")
 print("Balanced training for most frequent labels")
 print("================================================================================")
 for label,_ in top10_label_data:
@@ -97,6 +116,7 @@ for label,_ in top10_label_data:
 
 # %%
 print()
+print("================================================================================")
 print("Unbalanced training for most frequent labels")
 print("================================================================================")
 for label,_ in top10_label_data:

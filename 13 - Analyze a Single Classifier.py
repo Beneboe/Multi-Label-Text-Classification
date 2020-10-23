@@ -1,7 +1,7 @@
 # %%
 from utils.dataset import import_dataset, get_dataset
 from utils.plots import plot_confusion, plot_history
-from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, BalancedRandomClassifier, UnbalancedRandomClassifier, load_model
+from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, BaseWeightedClassifier, BalancedRandomClassifier, UnbalancedRandomClassifier, load_model
 from utils.text_preprocessing import from_token_ids
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,6 +24,15 @@ model, inner_model = load_model(INPUT_LENGTH)
 class BalancedClassifier(BaseBalancedClassifier):
     def __init__(self, id):
         super().__init__(model, inner_model, id)
+
+
+class Weighted10Classifier(BaseWeightedClassifier):
+    def __init__(self, id):
+        super().__init__(model, inner_model, id, 0.10)
+
+class Weighted20Classifier(BaseWeightedClassifier):
+    def __init__(self, id):
+        super().__init__(model, inner_model, id, 0.20)
 
 class UnbalancedClassifier(BaseUnbalancedClassifier):
     def __init__(self, id):
@@ -72,6 +81,8 @@ np.savetxt(f'results/{CLASS}_balanced_false_positives.csv', Xi_fp, delimiter=','
 classifiers = [
     (BalancedClassifier, 'balanced'),
     (UnbalancedClassifier, 'unbalanced'),
+    (Weighted10Classifier, 'p10'),
+    (Weighted20Classifier, 'p20'),
     (BalancedRandomClassifier, 'balanced_random'),
     (UnbalancedRandomClassifier, 'unbalanced_random'),
 ]
@@ -88,7 +99,7 @@ for (classifier_type, name) in classifiers:
     plt.show()
 
 # %%
-fig, axs = plt.subplots(2, 2, figsize=(14,10))
+fig, axs = plt.subplots(3, 2, figsize=(14,10))
 for i, (classifier_type, name) in enumerate(classifiers):
     classifier = classifier_type(CLASS)
     classifier.load_weights()
@@ -110,10 +121,12 @@ metric_comparison = pd.DataFrame(
     [
         BalancedClassifier(CLASS).load_metrics(),
         UnbalancedClassifier(CLASS).load_metrics(),
+        Weighted10Classifier(CLASS).load_metrics(),
+        Weighted20Classifier(CLASS).load_metrics(),
         BalancedRandomClassifier(CLASS).get_metrics(Xi, yi_expected),
         UnbalancedRandomClassifier(CLASS).get_metrics(Xi, yi_expected),
     ],
-    index=pd.Index(['Balanced', 'Unbalanced', 'BalancedRandom', 'UnbalancedRandom']))
+    index=pd.Index(['Balanced', 'Unbalanced', 'Positive 10', 'Positive 20', 'BalancedRandom', 'UnbalancedRandom']))
 
 metric_comparison.to_csv(f'results/{CLASS}_metric_comparison.csv')
 metric_comparison

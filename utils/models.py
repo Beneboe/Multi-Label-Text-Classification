@@ -50,12 +50,12 @@ def load_model(input_length, model_type=1):
     return (model, inner_model)
 
 class BaseClassifier:
-    def __init__(self, model, inner_model, id, train_balance=True, threshold=10, epochs=30, batch_size=32):
+    def __init__(self, model, inner_model, id, p_weight=None, threshold=10, epochs=30, batch_size=32):
         self.id = id
         self.inner_model = inner_model
         self.model = model
 
-        self.p_weight = 0.5 if train_balance else None
+        self.p_weight = p_weight
 
         self.threshold = threshold
         self.epochs = epochs
@@ -140,7 +140,7 @@ class BaseClassifier:
 
 class BaseBalancedClassifier(BaseClassifier):
     def __init__(self, model, inner_model, id):
-        super().__init__(model, inner_model, id, train_balance=True)
+        super().__init__(model, inner_model, id, p_weight=0.5)
 
     def get_weights_path(self):
         return f'results/weights/{self.id}_balanced'
@@ -151,9 +151,22 @@ class BaseBalancedClassifier(BaseClassifier):
     def get_metrics_path(self):
         return f'results/metrics/{self.id}_balanced.json'
 
+class BaseWeightedClassifier(BaseClassifier):
+    def __init__(self, model, inner_model, id, p_weight):
+        super().__init__(model, inner_model, id, p_weight)
+
+    def get_weights_path(self):
+        return f'results/weights/{self.id}_p{self.p_weight * 100}'
+
+    def get_history_path(self):
+        return f'results/history/{self.id}_p{self.p_weight * 100}.json'
+
+    def get_metrics_path(self):
+        return f'results/metrics/{self.id}_p{self.p_weight * 100}.json'
+
 class BaseUnbalancedClassifier(BaseClassifier):
     def __init__(self, model, inner_model, id):
-        super().__init__(model, inner_model, id, train_balance=False)
+        super().__init__(model, inner_model, id, p_weight=None)
 
     def get_weights_path(self):
         return f'results/weights/{self.id}_unbalanced'
