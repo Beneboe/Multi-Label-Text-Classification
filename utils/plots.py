@@ -26,10 +26,10 @@ def plot_confusion(cm, ax=None):
         vmax=cm.max().max()),
         ax=ax)
 
-def plot_history(history):
+def plot_history(history, i):
     for value in history.values():
         plt.plot(value)
-    plt.title(f'Classifier {1} Performance')
+    plt.title(f'Classifier {i} Performance')
     plt.ylabel('Metric Performance')
     plt.xlabel('epoch')
     plt.legend(history.keys(), loc='lower right')

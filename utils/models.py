@@ -156,13 +156,13 @@ class BaseWeightedClassifier(BaseClassifier):
         super().__init__(model, inner_model, id, p_weight)
 
     def get_weights_path(self):
-        return f'results/weights/{self.id}_p{self.p_weight * 100}'
+        return f'results/weights/{self.id}_p{int(self.p_weight * 100)}'
 
     def get_history_path(self):
-        return f'results/history/{self.id}_p{self.p_weight * 100}.json'
+        return f'results/history/{self.id}_p{int(self.p_weight * 100)}.json'
 
     def get_metrics_path(self):
-        return f'results/metrics/{self.id}_p{self.p_weight * 100}.json'
+        return f'results/metrics/{self.id}_p{int(self.p_weight * 100)}.json'
 
 class BaseUnbalancedClassifier(BaseClassifier):
     def __init__(self, model, inner_model, id):

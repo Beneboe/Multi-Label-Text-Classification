@@ -45,23 +45,16 @@ Xi, yi_expected = get_dataset(X_test, y_test, CLASS)
 # Plot the history diagrams
 
 # %%
-history1 = None
-with open(f'results/history/{CLASS}_balanced.json', 'r') as fp:
-    history1 = json.load(fp)
-plot_history(history1)
-plt.tight_layout()
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.png', dpi=163)
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_balanced_history.svg')
-plt.show()
-
-history2 = None
-with open(f'results/history/{CLASS}_unbalanced.json', 'r') as fp:
-    history2 = json.load(fp)
-plot_history(history2)
-plt.tight_layout()
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.png', dpi=163)
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_unbalanced_history.svg')
-plt.show()
+history_names = ['balanced', 'unbalanced', 'p20', 'p10']
+for name in history_names:
+    history = None
+    with open(f'results/history/{CLASS}_{name}.json', 'r') as fp:
+        history = json.load(fp)
+    plot_history(history, CLASS)
+    plt.tight_layout()
+    plt.savefig(f'datasets/imgs/classifier_{CLASS}_{name}_history.png', dpi=163)
+    plt.savefig(f'datasets/imgs/classifier_{CLASS}_{name}_history.svg')
+    plt.show()
 
 # %% [markdown]
 # Save the false positives
