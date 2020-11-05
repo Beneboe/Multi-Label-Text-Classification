@@ -57,7 +57,7 @@ for name in history_names:
     plt.show()
 
 # %% [markdown]
-# Save the false positives
+# Retrieve and save the false positives
 
 # %%
 balanced = BalancedClassifier(CLASS)
@@ -66,6 +66,17 @@ yi_predict = balanced.get_prediction(Xi)
 fp_mask = np.logical_and(yi_predict == 1, yi_expected == 0)
 Xi_fp = np.apply_along_axis(from_token_ids, 1, Xi[fp_mask])
 np.savetxt(f'results/{CLASS}_balanced_false_positives.csv', Xi_fp, delimiter=',', fmt='%s')
+
+# %% [markdown]
+# Retrieve and save the true positives
+
+# %%
+balanced = BalancedClassifier(CLASS)
+balanced.load_weights()
+yi_predict = balanced.get_prediction(Xi)
+fp_mask = np.logical_and(yi_predict == 1, yi_expected == 1)
+Xi_fp = np.apply_along_axis(from_token_ids, 1, Xi[fp_mask])
+np.savetxt(f'results/{CLASS}_balanced_true_positives.csv', Xi_fp, delimiter=',', fmt='%s')
 
 # %% [markdown]
 # Create the confusion matrix for each classifier
