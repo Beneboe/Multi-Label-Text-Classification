@@ -61,7 +61,7 @@ class BaseClassifier:
         self.epochs = epochs
         self.batch_size = batch_size
 
-        self.callbacks = [EarlyStopping(monitor='loss', patience=3, min_delta=0.0001)]
+        self.callbacks = [EarlyStopping(monitor='val_loss', patience=3, min_delta=0.0001)]
 
     # Path methods
     def get_metrics_path(self):
@@ -126,6 +126,7 @@ class BaseClassifier:
             history = self.model.fit(
                 Xi, yi,
                 epochs=self.epochs, batch_size=self.batch_size, callbacks=self.callbacks,
+                validation_split=0.2,
                 verbose=1)
 
             with open(self.get_history_path(), 'w') as fp:
