@@ -50,10 +50,11 @@ def load_model(input_length, model_type=1):
     return (model, inner_model)
 
 class BaseClassifier:
-    def __init__(self, model, inner_model, id, p_weight=None, threshold=10, epochs=30, batch_size=32):
+    def __init__(self, id, p_weight=None, threshold=10, epochs=30, batch_size=32, skip_model=False):
         self.id = id
-        self.inner_model = inner_model
-        self.model = model
+
+        if not skip_model:
+            self.model, self.inner_model = load_model(10)
 
         self.p_weight = p_weight
 
@@ -64,14 +65,17 @@ class BaseClassifier:
         self.callbacks = [EarlyStopping(monitor='val_loss', patience=3, min_delta=0.0001)]
 
     # Path methods
+    def get_name(self):
+        return self.id
+
     def get_metrics_path(self):
-        return f'results/metrics/{self.id}.json'
+        return f'results/metrics/{self.get_name()}.json'
 
     def get_weights_path(self):
-        return f'results/weights/{self.id}'
+        return f'results/weights/{self.get_name()}'
 
     def get_history_path(self):
-        return f'results/history/{self.id}.json'
+        return f'results/history/{self.get_name()}.json'
 
     # Metric methods
     def get_prediction(self, X):
@@ -112,8 +116,6 @@ class BaseClassifier:
         self.inner_model.load_weights(self.get_weights_path())
 
     def train(self, X_train, y_train, X_test, y_test):
-        print(f'Training classifier {self.id}...')
-
         # Create the classifier
         self.model.summary()
 
@@ -139,44 +141,34 @@ class BaseClassifier:
         Xi_test, yi_test = get_dataset(X_test, y_test, self.id)
         self.save_metrics(Xi_test, yi_test)
 
-class BaseBalancedClassifier(BaseClassifier):
-    def __init__(self, model, inner_model, id):
-        super().__init__(model, inner_model, id, p_weight=0.5)
+class BalancedClassifier(BaseClassifier):
+    def __init__(self, id, **kwargs):
+        super().__init__(id, 0.5, **kwargs)
 
-    def get_weights_path(self):
-        return f'results/weights/{self.id}_balanced'
-
-    def get_history_path(self):
-        return f'results/history/{self.id}_balanced.json'
-
-    def get_metrics_path(self):
-        return f'results/metrics/{self.id}_balanced.json'
+    def get_name(self):
+        return f'{self.id}_balanced'
 
 class BaseWeightedClassifier(BaseClassifier):
-    def __init__(self, model, inner_model, id, p_weight):
-        super().__init__(model, inner_model, id, p_weight)
+    def __init__(self, id, p_weight, **kwargs):
+        super().__init__(id, p_weight, **kwargs)
 
-    def get_weights_path(self):
-        return f'results/weights/{self.id}_p{int(self.p_weight * 100)}'
+    def get_name(self):
+        return f'{self.id}_{int(self.p_weight * 100)}%positive'
 
-    def get_history_path(self):
-        return f'results/history/{self.id}_p{int(self.p_weight * 100)}.json'
+class Weighted10Classifier(BaseWeightedClassifier):
+    def __init__(self, id, **kwargs):
+        super().__init__(id, 0.10, **kwargs)
 
-    def get_metrics_path(self):
-        return f'results/metrics/{self.id}_p{int(self.p_weight * 100)}.json'
+class Weighted20Classifier(BaseWeightedClassifier):
+    def __init__(self, id, **kwargs):
+        super().__init__(id, 0.20, **kwargs)
 
 class BaseUnbalancedClassifier(BaseClassifier):
-    def __init__(self, model, inner_model, id):
-        super().__init__(model, inner_model, id, p_weight=None)
+    def __init__(self, id, **kwargs):
+        super().__init__(id, p_weight=None, **kwargs)
 
-    def get_weights_path(self):
-        return f'results/weights/{self.id}_unbalanced'
-
-    def get_history_path(self):
-        return f'results/history/{self.id}_unbalanced.json'
-
-    def get_metrics_path(self):
-        return f'results/metrics/{self.id}_unbalanced.json'
+    def get_name(self):
+        return f'{self.id}_unbalanced'
 
 class RandomClassifier:
     def __init__(self, id, threshold):

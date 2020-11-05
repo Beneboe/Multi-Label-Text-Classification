@@ -1,6 +1,7 @@
 # %%
 from utils.dataset import import_dataset
-from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, BaseWeightedClassifier, load_model
+from utils.models import BalancedClassifier, UnbalancedClassifier, Weighted10Classifier, Weighted20Classifier
+from timeit import default_timer as timer
 
 # %% [markdown]
 # # Training the AmazonCat-13k Dataset
@@ -21,47 +22,19 @@ X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INP
 # Define the model
 
 # %%
-model, inner_model = load_model(INPUT_LENGTH)
-
-# %%
-class BalancedClassifier(BaseBalancedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id)
-
-class Weighted10Classifier(BaseWeightedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id, 0.10)
-
-class Weighted20Classifier(BaseWeightedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id, 0.20)
-
-class UnbalancedClassifier(BaseUnbalancedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id)
-
-# %% [markdown]
-# Actually train the classifiers.
-
-# %%
-# for i in range(CLASS_COUNT):
-#     trainer_balanced.train(i)
-
-# %%
-print("================================================================================")
-print("Train the classifier for 8842")
-print("================================================================================")
-BalancedClassifier(8842).train(X_train, y_train, X_test, y_test)
-
-
-# %%
-Weighted10Classifier(8842).train(X_train, y_train, X_test, y_test)
-
-# %%
-Weighted20Classifier(8842).train(X_train, y_train, X_test, y_test)
-
-# %%
-UnbalancedClassifier(8842).train(X_train, y_train, X_test, y_test)
+# Top 10 most frequent labels ordered from most to least frequent
+# Order: label, frequency
+top10_label_data = [
+    (1471,355211),
+    (7961,194561),
+    (7892,128026),
+    (9237,120090),
+    # (7083,97803) # duplicate
+    (7891,88967),
+    (4038,76277),
+    (10063,75035),
+    (12630,71667),
+]
 
 # %%
 # Labels just below certain thresholds
@@ -75,49 +48,36 @@ threshold_data = [
     (100000,7083,96012),
 ]
 
-# %%
-# Top 10 most frequent labels ordered from most to least frequent
-# Order: label, frequency
-top10_label_data = [
-    (1471,355211)
-    (7961,194561)
-    (7892,128026)
-    (9237,120090)
-    # (7083,97803) # duplicate
-    (7891,88967)
-    (4038,76277)
-    (10063,75035)
-    (12630,71667)
-]
+# %% [markdown]
+# Actually train the classifiers.
 
 # %%
-print()
-print("================================================================================")
-print("Balanced training for different threshold labels")
-print("================================================================================")
-for _,label,_ in threshold_data:
-    BalancedClassifier(label).train(X_train, y_train, X_test, y_test)
+configurations = dict(
+      [(8842, [BalancedClassifier, Weighted20Classifier])]
+    # + [(label, [BalancedClassifier, UnbalancedClassifier]) for label,_ in top10_label_data]
+    # + [(label, [BalancedClassifier, UnbalancedClassifier]) for _,label,_ in threshold_data]
+    )
 
 # %%
-print()
-print("================================================================================")
-print("Unbalanced training for different threshold labels")
-print("================================================================================")
-for _,label,_ in threshold_data:
-    UnbalancedClassifier(label).train(X_train, y_train, X_test, y_test)
+training_types = {
+    BalancedClassifier: "balanced",
+    Weighted20Classifier: "20%positive",
+    Weighted10Classifier: "10%positive",
+    UnbalancedClassifier: "unbalanced",
+}
+durations = {}
+
+for label, classifiers in configurations.items():
+    durations[label] = []
+    for classifier in classifiers:
+        print(f"Training classifier for label '{label}' with '{training_types[classifier]}' training")
+
+        start = timer()
+        classifier(label).train(X_train, y_train, X_test, y_test)
+        end = timer()
+
+        duration = end - start
+        durations[label].append(duration)
+        print(f"Training took {duration} seconds.")
 
 # %%
-print()
-print("================================================================================")
-print("Balanced training for most frequent labels")
-print("================================================================================")
-for label,_ in top10_label_data:
-    BalancedClassifier(label).train(X_train, y_train, X_test, y_test)
-
-# %%
-print()
-print("================================================================================")
-print("Unbalanced training for most frequent labels")
-print("================================================================================")
-for label,_ in top10_label_data:
-    UnbalancedClassifier(label).train(X_train, y_train, X_test, y_test)

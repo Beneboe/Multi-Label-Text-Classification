@@ -1,5 +1,5 @@
 # %%
-from utils.models import BaseBalancedClassifier
+from utils.models import BalancedClassifier
 from keras import Sequential
 import numpy as np
 import pandas as pd
@@ -20,18 +20,6 @@ EPOCHS = 30
 TRAINING_THRESHOLD = 2
 
 # %%
-# Model 1
-inner_model = Sequential([])
-model = Sequential([])
-
-# %% [markdown]
-# Define the model
-
-class Classifier(BaseBalancedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id)
-
-# %%
 threshold_data = [
     (50,6554,50),
     (100,4949,100),
@@ -48,7 +36,7 @@ thresholds, labels, frequencies = zip(*threshold_data)
 
 # %%
 def get_metric_data(label):
-    classifier = Classifier(label)
+    classifier = BalancedClassifier(label, skip_model=True)
     metrics = classifier.load_metrics()
 
     return (metrics['precision'], metrics['recall'])

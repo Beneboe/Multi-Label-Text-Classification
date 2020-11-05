@@ -1,7 +1,7 @@
 # %%
 from utils.dataset import import_dataset, get_dataset
 from utils.plots import plot_confusion, plot_history
-from utils.models import BaseBalancedClassifier, BaseUnbalancedClassifier, BaseWeightedClassifier, BalancedRandomClassifier, UnbalancedRandomClassifier, load_model
+from utils.models import BalancedClassifier, UnbalancedClassifier, Weighted10Classifier, Weighted20Classifier, BalancedRandomClassifier, UnbalancedRandomClassifier
 from utils.text_preprocessing import from_token_ids
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,26 +17,6 @@ CLASS = 8842
 X_train, y_train = import_dataset('datasets/AmazonCat-13K/trn.processed.json', INPUT_LENGTH)
 X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
 
-# %%
-model, inner_model = load_model(INPUT_LENGTH)
-
-# %%
-class BalancedClassifier(BaseBalancedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id)
-
-
-class Weighted10Classifier(BaseWeightedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id, 0.10)
-
-class Weighted20Classifier(BaseWeightedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id, 0.20)
-
-class UnbalancedClassifier(BaseUnbalancedClassifier):
-    def __init__(self, id):
-        super().__init__(model, inner_model, id)
 
 # %%
 Xi, yi_expected = get_dataset(X_test, y_test, CLASS)
