@@ -1,9 +1,10 @@
 # %%
-from utils.models import Weighted50Classifier
+from utils.models import create_classifier
 from keras import Sequential
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import utils.storage as st
 
 # %% [markdown]
 # # Analyze Different Label Frequency Thresholds
@@ -28,7 +29,6 @@ threshold_data = [
     (50000,9202,48521),
     # (100000,7083,96012),
 ]
-
 thresholds, labels, frequencies = zip(*threshold_data)
 
 # %% [markdown]
@@ -36,9 +36,7 @@ thresholds, labels, frequencies = zip(*threshold_data)
 
 # %%
 def get_metric_data(label):
-    classifier = Weighted50Classifier(label, skip_model=True)
-    metrics = classifier.load_metrics()
-
+    metrics = st.load_metrics(label, '50%positive')
     return (metrics['precision'], metrics['recall'])
 
 all_metric_data = [get_metric_data(label) for label in labels]

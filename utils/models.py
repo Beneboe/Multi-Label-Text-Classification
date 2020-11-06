@@ -1,12 +1,14 @@
-import itertools
 from utils.dataset import get_dataset, import_embedding_layer
 from numpy.random import default_rng
 from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.callbacks import EarlyStopping
 import utils.metrics as mt
+import utils.storage as st
 import numpy as np
 import json
+
+embedding_layer = import_embedding_layer()
 
 def prediction_threshold(y_predict):
     return np.count_nonzero(y_predict < 0.5) / y_predict.shape[0]
@@ -42,7 +44,7 @@ def load_model(input_length, model_type=1):
 
     model = Sequential([
         InputLayer(input_shape=(input_length,)),
-        import_embedding_layer(),
+        embedding_layer,
         inner_model
     ])
 
@@ -55,81 +57,10 @@ def load_model(input_length, model_type=1):
     return (model, inner_model)
 
 class Classifier:
-    def __init__(self, id) -> None:
+    def __init__(self, id, type_name, p_weight, threshold=10, epochs=30, batch_size=32, skip_model=False) -> None:
         self.id = id
-
-    def get_name(self) -> str:
-        return self.id
-
-    def get_prediction_path(self) -> str:
-        return f'results/predict/{self.get_name()}.npz'
-
-    def get_metrics_path(self) -> str:
-        return f'results/metrics/{self.get_name()}.json'
-
-    def get_weights_path(self) -> str:
-        return f'results/weights/{self.get_name()}'
-
-    def get_history_path(self) -> str:
-        return f'results/history/{self.get_name()}.json'
-
-    # Prediction methods
-    def get_prediction(self, X):
-        pass
-
-    def load_prediction(self):
-        with open(self.get_prediction_path(), 'r') as fp:
-            return json.load(fp)
-
-    def save_prediction(self, X):
-        prediction = self.get_prediction(X)
-        with open(self.get_prediction_path(), 'w') as fp:
-            np.save(fp, prediction)
-        return prediction
-
-    # Metric methods
-    def get_metrics(self, X, y_expected):
-        y_predict = self.get_prediction(X)
-        return mt.all_metrics(y_predict, y_expected)
-
-    def load_metrics(self):
-        with open(self.get_metrics_path(), 'r') as fp:
-            return json.load(fp)
-
-    def save_metrics(self, X, y_expected):
-        metrics = self.get_metrics(X, y_expected)
-        with open(self.get_metrics_path(), 'w') as fp:
-            json.dump(metrics, fp)
-        return metrics
-
-    # Confusion methods
-    def get_confusion(self, X, y_expected):
-        y_predict = self.get_prediction(X)
-        return mt.get_confusion(y_predict, y_expected)
-
-    def load_confusion(self):
-        with open(self.get_confusion_path(), 'r') as fp:
-            return json.load(fp)
-
-    def save_confusion(self, X, y_expected):
-        confusion = self.get_confusion(X, y_expected)
-        with open(self.get_confusion_path(), 'w') as fp:
-            json.dump(confusion, fp)
-        return confusion
-
-    # Model methods
-    def save_weights(self):
-        pass
-
-    def load_weights(self):
-        pass
-
-    def train(self, X_train, y_train, X_test, y_test):
-        pass
-
-class KerasClassifier(Classifier):
-    def __init__(self, id, p_weight=None, threshold=10, epochs=30, batch_size=32, skip_model=False):
-        super().__init__(id)
+        self.type_name = type_name
+        self.name = st.get_name(self.id, self.type_name)
 
         if not skip_model:
             self.model, self.inner_model = load_model(10)
@@ -142,19 +73,17 @@ class KerasClassifier(Classifier):
 
         self.callbacks = [EarlyStopping(monitor='val_loss', patience=3, min_delta=0.0001)]
 
-    # Metric methods
     def get_prediction(self, X):
         return mt.get_prediction(self.model, X)
 
-    # Model methods
     def save_weights(self):
         # Do not save the weights of the embedding layer
-        self.inner_model.save_weights(self.get_weights_path())
+        self.inner_model.save_weights(st.get_weights_path(self.name))
 
     def load_weights(self):
-        self.inner_model.load_weights(self.get_weights_path())
+        self.inner_model.load_weights(st.get_weights_path(self.name))
 
-    def train(self, X_train, y_train, X_test, y_test):
+    def train(self, X_train, y_train):
         # Create the classifier
         self.model.summary()
 
@@ -170,97 +99,18 @@ class KerasClassifier(Classifier):
                 validation_split=0.2,
                 verbose=1)
 
-            with open(self.get_history_path(), 'w') as fp:
-                json.dump(history.history, fp)
+            st.save_history(self.id, self.type_name, history.history)
 
             # Save the weights
             self.save_weights()
 
-class BaseWeightedClassifier(KerasClassifier):
-    def __init__(self, id, p_weight, **kwargs):
-        super().__init__(id, p_weight, **kwargs)
+def create_classifier(id, type_name, **kwargs):
+    if type_name[2:] == '%positive':
+        p_weight = float(type_name[0:2]) / 100.0
+        return Classifier(id, type_name, p_weight, **kwargs)
+    elif type_name == 'unbalanced':
+        return Classifier(id, 'unbalanced', None, **kwargs)
 
-    def get_name(self):
-        percent = int(self.p_weight * 100)
-        return f'{self.id}_{percent}%positive'
-
-class Weighted10Classifier(BaseWeightedClassifier):
-    def __init__(self, id, **kwargs):
-        super().__init__(id, 0.10, **kwargs)
-
-class Weighted20Classifier(BaseWeightedClassifier):
-    def __init__(self, id, **kwargs):
-        super().__init__(id, 0.20, **kwargs)
-
-class Weighted50Classifier(BaseWeightedClassifier):
-    def __init__(self, id, **kwargs):
-        super().__init__(id, 0.5, **kwargs)
-
-class UnbalancedClassifier(KerasClassifier):
-    def __init__(self, id, **kwargs):
-        super().__init__(id, p_weight=None, **kwargs)
-
-    def get_name(self):
-        return f'{self.id}_unbalanced'
-
-class RandomClassifier(Classifier):
-    def __init__(self, id, threshold):
-        self.id = id
-        self.threshold = threshold
-
-    # Metric methods
-    def get_prediction(self, X):
-        y_predict = default_rng(42).uniform(size=X.shape[0])
-        y_predict = (y_predict >= self.threshold).astype('int32')
-        return y_predict
-
-class Weighted50RandomClassifier(RandomClassifier):
-    def __init__(self, id):
-        super().__init__(id, 0.5)
-
-    def get_name(self):
-        return f'{self.id}_50%positive_random'
-
-class UnbalancedRandomClassifier(RandomClassifier):
-    def __init__(self, id):
-        super().__init__(id, 0.5)
-
-    def get_metrics(self, X, y_expected):
-        self.threshold = prediction_threshold(y_expected)
-        return super().get_metrics(X, y_expected)
-
-    def get_confusion(self, X, y_expected):
-        self.threshold = prediction_threshold(y_expected)
-        return super().get_confusion(X, y_expected)
-
-    def get_name(self):
-        return f'{self.id}_unbalanced_random'
-
-all_keras_classes = [
-    Weighted50Classifier,
-    Weighted20Classifier,
-    Weighted10Classifier,
-    UnbalancedClassifier,
-]
-
-all_random_classes = [
-    Weighted50RandomClassifier,
-    UnbalancedRandomClassifier,
-]
-
-def keras_classifiers(id, classes=all_keras_classes, skip_model=False):
-    for c in classes:
-        classifier = c(id, skip_model=skip_model)
-        if not skip_model:
-            classifier.load_weights()
-        yield classifier
-
-def random_classifiers(id, classes=all_random_classes):
-    for c in classes:
-        yield c(id)
-
-def classifiers(id, keras_classes=all_keras_classes, random_classes=all_random_classes, skip_model=False):
-    return itertools.chain(
-        keras_classifiers(id, keras_classes, skip_model=skip_model),
-        random_classifiers(id, random_classes)
-    )
+def create_classifiers(id, type_names, **kwargs):
+    for type_name in type_names:
+        yield create_classifier(id, type_name, **kwargs)

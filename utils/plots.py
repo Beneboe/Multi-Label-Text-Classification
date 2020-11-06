@@ -5,6 +5,8 @@ import seaborn as sns
 import pandas as pd
 from matplotlib.colors import LogNorm
 
+def get_title(name):
+    return ' '.join(word.capitalize() for word in name.split('_'))
 
 def convert_cm(cm):
     tp, fp, fn, tn = cm
@@ -14,11 +16,11 @@ def convert_cm(cm):
         index=pd.Index(categories, name='Predicted'),
         columns=pd.Index(categories, name='Actual'))
 
-def plot_confusion(cm, ax=None):
+def plot_confusion(cm, name, ax=None):
     cm = convert_cm(cm)
 
     sns.set(font_scale=1.4)
-    sns.heatmap(cm,
+    nax = sns.heatmap(cm,
         fmt=',d',
         annot=True,
         annot_kws={"size": 16},
@@ -26,10 +28,12 @@ def plot_confusion(cm, ax=None):
         vmax=cm.max().max()),
         ax=ax)
 
+    nax.set_title(get_title(name))
+
 def plot_history(history, name):
     for value in history.values():
         plt.plot(value)
-    plt.title(f'Classifier {name} Performance')
+    plt.title(f'Classifier {get_title(name)} Performance')
     plt.ylabel('Metric Performance')
     plt.xlabel('epoch')
     plt.legend(history.keys(), loc='lower right')

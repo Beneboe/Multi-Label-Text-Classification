@@ -1,14 +1,16 @@
 # %%
 from utils.dataset import get_dataset, import_dataset
-from utils.models import Weighted50Classifier, Weighted10Classifier, Weighted20Classifier, UnbalancedClassifier, keras_classifiers
+from utils.models import create_classifiers
+from itertools import chain
 from timeit import default_timer as timer
+import utils.storage as st
 
 # %% [markdown]
 # # Training the AmazonCat-13k Dataset
 # First, setup the hyperparameters.
 
 # %%
-INPUT_LENGTH = 100
+INPUT_LENGTH = 10
 CLASS_COUNT = 13330
 
 # %% [markdown]
@@ -35,6 +37,7 @@ top10_label_data = [
     (10063,75035),
     (12630,71667),
 ]
+top10_labels, _ = zip(*top10_label_data)
 
 # %%
 # Labels just below certain thresholds
@@ -47,38 +50,38 @@ threshold_data = [
     (50000,9202,48521),
     (100000,7083,96012),
 ]
+_, threshold_labels, _ = zip(*threshold_data)
 
 # %% [markdown]
 # Actually train the classifiers.
 
 # %%
-
-classes = [
-    [Weighted50Classifier, Weighted10Classifier, Weighted20Classifier, UnbalancedClassifier],
-    [Weighted50Classifier, UnbalancedClassifier],
-]
-
-classifiers = (
-    [keras_classifiers(8842, classes[0])] +
-    [keras_classifiers(label, classes[1]) for label,_ in top10_label_data] +
-    [keras_classifiers(label, classes[1]) for _,label,_ in threshold_data]
-)
+cs = create_classifiers(8842, ['50%positive', '20%positive', '10%positive', 'unbalanced'])
+for label in top10_labels:
+    cs = chain(cs, create_classifiers(label, ['50%positive', 'unbalanced']))
+for label in threshold_labels:
+    cs = chain(cs, create_classifiers(label, ['50%positive', 'unbalanced']))
 
 # %%
 durations = {}
 
-for c in classifiers:
+for c in cs:
     durations[c.id] = []
 
-    print(f"Training classifier '{c.get_name()}'.")
+    print(f"Training classifier '{c.name}'.")
 
     start = timer()
-    c.train(X_train, y_train, X_test, y_test)
+    c.train(X_train, y_train)
     end = timer()
 
     duration = end - start
     durations[c.id].append(duration)
     print(f"Training took {duration} seconds.")
 
+    c.load_weights()
+
     Xi_test, yi_test = get_dataset(X_test, y_test, c.id)
-    c.save_prediction(Xi_test)
+    yi_predict = c.get_prediction(Xi_test)
+    st.save_prediction(c.id, c.type_name, yi_predict)
+
+# %%
