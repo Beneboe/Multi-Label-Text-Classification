@@ -6,7 +6,7 @@ from timeit import default_timer as timer
 import utils.storage as st
 
 # %% [markdown]
-# # Training the AmazonCat-13k Dataset
+# # Training on the AmazonCat-13k Dataset
 # First, setup the hyperparameters.
 
 # %%
@@ -31,11 +31,12 @@ top10_label_data = [
     (7961,194561),
     (7892,128026),
     (9237,120090),
-    # (7083,97803) # duplicate
+    (7083,97803),
     (7891,88967),
     (4038,76277),
     (10063,75035),
     (12630,71667),
+    (8108,71667),
 ]
 top10_labels, _ = zip(*top10_label_data)
 
@@ -48,7 +49,7 @@ threshold_data = [
     (1000,7393,996),
     (10000,84,9976),
     (50000,9202,48521),
-    (100000,7083,96012),
+    # (100000,7083,96012), # duplicate
 ]
 _, threshold_labels, _ = zip(*threshold_data)
 
@@ -56,16 +57,17 @@ _, threshold_labels, _ = zip(*threshold_data)
 # Actually train the classifiers.
 
 # %%
-cs = create_classifiers(8842, ['50%positive', '20%positive', '10%positive', 'unbalanced'])
-for label in top10_labels:
-    cs = chain(cs, create_classifiers(label, ['50%positive', 'unbalanced']))
-for label in threshold_labels:
-    cs = chain(cs, create_classifiers(label, ['50%positive', 'unbalanced']))
+def classifiers():
+    return chain(
+        create_classifiers(8842, ['50%positive', '20%positive', '10%positive', 'unbalanced']),
+        chain(*[create_classifiers(label, ['50%positive', 'unbalanced']) for label in top10_labels]),
+        chain(*[create_classifiers(label, ['50%positive', 'unbalanced']) for label in threshold_labels]),
+    )
 
 # %%
 durations = {}
 
-for c in cs:
+for c in classifiers():
     durations[c.id] = []
 
     print(f"Training classifier '{c.name}'.")
@@ -77,8 +79,6 @@ for c in cs:
     duration = end - start
     durations[c.id].append(duration)
     print(f"Training took {duration} seconds.")
-
-    c.load_weights()
 
     Xi_test, yi_test = get_dataset(X_test, y_test, c.id)
     yi_predict = c.get_prediction(Xi_test)
