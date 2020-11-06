@@ -8,8 +8,7 @@ import utils.storage as st
 import numpy as np
 import json
 
-embedding_layer = import_embedding_layer()
-
+embedding_layer = None
 def prediction_threshold(y_predict):
     return np.count_nonzero(y_predict < 0.5) / y_predict.shape[0]
 
@@ -19,6 +18,10 @@ def random_prediction(X, threshold):
     return y_predict
 
 def load_model(input_length, model_type=1):
+    global embedding_layer
+    if embedding_layer is None:
+        embedding_layer = import_embedding_layer()
+
     inner_model = None
     if model_type == 1:
         inner_model = Sequential([
