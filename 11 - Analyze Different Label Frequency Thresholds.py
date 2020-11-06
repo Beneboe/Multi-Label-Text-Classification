@@ -1,5 +1,5 @@
 # %%
-from utils.models import BalancedClassifier
+from utils.models import Weighted50Classifier
 from keras import Sequential
 import numpy as np
 import pandas as pd
@@ -36,7 +36,7 @@ thresholds, labels, frequencies = zip(*threshold_data)
 
 # %%
 def get_metric_data(label):
-    classifier = BalancedClassifier(label, skip_model=True)
+    classifier = Weighted50Classifier(label, skip_model=True)
     metrics = classifier.load_metrics()
 
     return (metrics['precision'], metrics['recall'])

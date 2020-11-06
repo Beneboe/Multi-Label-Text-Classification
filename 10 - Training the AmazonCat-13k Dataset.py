@@ -1,6 +1,6 @@
 # %%
 from utils.dataset import import_dataset
-from utils.models import BalancedClassifier, UnbalancedClassifier, Weighted10Classifier, Weighted20Classifier
+from utils.models import Weighted50Classifier, Weighted10Classifier, Weighted20Classifier, UnbalancedClassifier, keras_classifiers
 from timeit import default_timer as timer
 
 # %% [markdown]
@@ -52,32 +52,30 @@ threshold_data = [
 # Actually train the classifiers.
 
 # %%
-configurations = dict(
-      [(8842, [BalancedClassifier, Weighted20Classifier])]
-    # + [(label, [BalancedClassifier, UnbalancedClassifier]) for label,_ in top10_label_data]
-    # + [(label, [BalancedClassifier, UnbalancedClassifier]) for _,label,_ in threshold_data]
-    )
+
+classes = [
+    [Weighted50Classifier, Weighted10Classifier, Weighted20Classifier, UnbalancedClassifier],
+    [Weighted50Classifier, UnbalancedClassifier],
+]
+
+classifiers = (
+    [keras_classifiers(8842, classes[0])] +
+    [keras_classifiers(label, classes[1]) for label,_ in top10_label_data] +
+    [keras_classifiers(label, classes[1]) for _,label,_ in threshold_data]
+)
 
 # %%
-training_types = {
-    BalancedClassifier: "balanced",
-    Weighted20Classifier: "20%positive",
-    Weighted10Classifier: "10%positive",
-    UnbalancedClassifier: "unbalanced",
-}
 durations = {}
 
-for label, classifiers in configurations.items():
-    durations[label] = []
-    for classifier in classifiers:
-        print(f"Training classifier for label '{label}' with '{training_types[classifier]}' training")
+for c in classifiers:
+    durations[c.id] = []
 
-        start = timer()
-        classifier(label).train(X_train, y_train, X_test, y_test)
-        end = timer()
+    print(f"Training classifier '{c.get_name()}'.")
 
-        duration = end - start
-        durations[label].append(duration)
-        print(f"Training took {duration} seconds.")
+    start = timer()
+    c.train(X_train, y_train, X_test, y_test)
+    end = timer()
 
-# %%
+    duration = end - start
+    durations[c.id].append(duration)
+    print(f"Training took {duration} seconds.")
