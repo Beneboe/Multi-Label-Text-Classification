@@ -1,5 +1,5 @@
 # %%
-from utils.dataset import import_dataset
+from utils.dataset import get_dataset, import_dataset
 from utils.models import Weighted50Classifier, Weighted10Classifier, Weighted20Classifier, UnbalancedClassifier, keras_classifiers
 from timeit import default_timer as timer
 
@@ -79,3 +79,6 @@ for c in classifiers:
     duration = end - start
     durations[c.id].append(duration)
     print(f"Training took {duration} seconds.")
+
+    Xi_test, yi_test = get_dataset(X_test, y_test, c.id)
+    c.save_prediction(Xi_test)

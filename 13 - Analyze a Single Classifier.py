@@ -76,7 +76,7 @@ for c in classifiers(CLASS):
 
 # %%
 nrows, ncols = 2, 3
-fig, axs = plt.subplots(nrows, ncols, figsize=(14,10))
+fig, axs = plt.subplots(nrows, ncols, figsize=(7 * ncols, 5 * nrows))
 for i, c in enumerate(classifiers(CLASS)):
     cm = c.get_confusion(Xi, yi_expected)
     ax = axs[i // ncols, i % ncols]
@@ -93,7 +93,7 @@ plt.savefig(f'datasets/imgs/classifier_{CLASS}_all_confusion.svg')
 metric_comparison = pd.DataFrame(
     ([c.load_metrics() for c in keras_classifiers(CLASS, skip_model=True)]
     + [c.get_metrics(Xi, yi_expected) for c in random_classifiers(CLASS)]),
-    index=pd.Index([get_title(c) for c in classifiers(skip_model=True)]))
+    index=pd.Index([get_title(c) for c in classifiers(CLASS, skip_model=True)]))
 
 metric_comparison.to_csv(f'results/{CLASS}_metric_comparison.csv')
 metric_comparison

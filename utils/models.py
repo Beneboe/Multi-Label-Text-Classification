@@ -11,6 +11,11 @@ import json
 def prediction_threshold(y_predict):
     return np.count_nonzero(y_predict < 0.5) / y_predict.shape[0]
 
+def random_prediction(X, threshold):
+    y_predict = default_rng(42).uniform(size=X.shape[0])
+    y_predict = (y_predict >= threshold).astype('int32')
+    return y_predict
+
 def load_model(input_length, model_type=1):
     inner_model = None
     if model_type == 1:
@@ -56,6 +61,9 @@ class Classifier:
     def get_name(self) -> str:
         return self.id
 
+    def get_prediction_path(self) -> str:
+        return f'results/predict/{self.get_name()}.npz'
+
     def get_metrics_path(self) -> str:
         return f'results/metrics/{self.get_name()}.json'
 
@@ -65,10 +73,21 @@ class Classifier:
     def get_history_path(self) -> str:
         return f'results/history/{self.get_name()}.json'
 
-    # Metric methods
+    # Prediction methods
     def get_prediction(self, X):
         pass
 
+    def load_prediction(self):
+        with open(self.get_prediction_path(), 'r') as fp:
+            return json.load(fp)
+
+    def save_prediction(self, X):
+        prediction = self.get_prediction(X)
+        with open(self.get_prediction_path(), 'w') as fp:
+            np.save(fp, prediction)
+        return prediction
+
+    # Metric methods
     def get_metrics(self, X, y_expected):
         y_predict = self.get_prediction(X)
         return mt.all_metrics(y_predict, y_expected)
@@ -81,12 +100,22 @@ class Classifier:
         metrics = self.get_metrics(X, y_expected)
         with open(self.get_metrics_path(), 'w') as fp:
             json.dump(metrics, fp)
-
         return metrics
 
+    # Confusion methods
     def get_confusion(self, X, y_expected):
         y_predict = self.get_prediction(X)
         return mt.get_confusion(y_predict, y_expected)
+
+    def load_confusion(self):
+        with open(self.get_confusion_path(), 'r') as fp:
+            return json.load(fp)
+
+    def save_confusion(self, X, y_expected):
+        confusion = self.get_confusion(X, y_expected)
+        with open(self.get_confusion_path(), 'w') as fp:
+            json.dump(confusion, fp)
+        return confusion
 
     # Model methods
     def save_weights(self):
@@ -146,10 +175,6 @@ class KerasClassifier(Classifier):
 
             # Save the weights
             self.save_weights()
-
-        # Save the metrics
-        Xi_test, yi_test = get_dataset(X_test, y_test, self.id)
-        self.save_metrics(Xi_test, yi_test)
 
 class BaseWeightedClassifier(KerasClassifier):
     def __init__(self, id, p_weight, **kwargs):
@@ -213,8 +238,8 @@ class UnbalancedRandomClassifier(RandomClassifier):
 
 all_keras_classes = [
     Weighted50Classifier,
-    Weighted10Classifier,
     Weighted20Classifier,
+    Weighted10Classifier,
     UnbalancedClassifier,
 ]
 
@@ -225,7 +250,7 @@ all_random_classes = [
 
 def keras_classifiers(id, classes=all_keras_classes, skip_model=False):
     for c in classes:
-        classifier = c(id, skip_model)
+        classifier = c(id, skip_model=skip_model)
         if not skip_model:
             classifier.load_weights()
         yield classifier
@@ -236,6 +261,6 @@ def random_classifiers(id, classes=all_random_classes):
 
 def classifiers(id, keras_classes=all_keras_classes, random_classes=all_random_classes, skip_model=False):
     return itertools.chain(
-        keras_classes(id, keras_classes, skip_model),
-        random_classes(id, random_classes)
+        keras_classifiers(id, keras_classes, skip_model=skip_model),
+        random_classifiers(id, random_classes)
     )
