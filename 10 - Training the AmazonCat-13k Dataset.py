@@ -41,7 +41,7 @@ top10_label_data = [
 top10_labels, _ = zip(*top10_label_data)
 
 # %%
-# Labels just below certain thresholds
+# Labels just below certain frequency thresholds
 # Order: threshold, label, frequency
 threshold_data = [
     (50,6554,50),

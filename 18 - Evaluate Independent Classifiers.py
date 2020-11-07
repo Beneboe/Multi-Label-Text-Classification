@@ -1,7 +1,7 @@
 # %%
 from utils.dataset import get_dataset, import_dataset
-import scipy.sparse as smat
 import utils.metrics as mt
+import utils.storage as st
 import numpy as np
 
 # load the test set
@@ -37,18 +37,11 @@ threshold_data = [
 _, threshold_labels, _ = zip(*threshold_data)
 
 # %% [markdown]
-# ## Load the prediction file
+# ## Load the prediction files
 
 # %%
-
-y_predict = smat.load_npz('datasets/X-BERT/???.predict.npz')
-
-# %% [markdown]
-# ##  Map from original label index to X-BERT label index
-
-# %%
-def xbert_map(label):
-    return label
+labels = top10_labels
+y_predict = [st.load_prediction(label, '50%positive') for label in labels]
 
 # %% [markdown]
 # ##  Calculate the metrics per label
@@ -56,16 +49,15 @@ def xbert_map(label):
 # %% 
 def metrics(label):
     _, yi_expected = get_dataset(X_test, y_test, label)
-    yi_predict = y_predict[:, xbert_map(label)]
+    yi_predict = y_predict[labels.index(label)]
     return mt.all_metrics(yi_predict, yi_expected)
 
 # %% [markdown]
 # ## Calculate the micro and macro f1 measure
 
 # %% 
-lbs = [xbert_map(label) for label in top10_labels]
-ys_predict = y_predict[:, lbs]
-ys_expected = y_test[:, top10_labels]
+ys_predict = y_predict
+ys_expected = y_test[:, labels]
 macro = mt.macro_f1measure(ys_predict, ys_expected)
 micro = mt.micro_f1measure(ys_predict, ys_expected)
 

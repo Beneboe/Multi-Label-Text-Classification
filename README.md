@@ -45,7 +45,7 @@ Ensure that the project folder has the following directory structure:
   - GoogleNews-vectors-negative.bin.gz
 - results/
   - history/
-  - metrics/
+  - predict/
   - weights/
 - 10 - Training the AmazonCat-13k Dataset.py
 

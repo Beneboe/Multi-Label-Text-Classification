@@ -12,11 +12,7 @@ import pandas as pd
 INPUT_LENGTH = 10
 CLASS = 8842
 
-# %%
-X_train, y_train = import_dataset('datasets/AmazonCat-13K/trn.processed.json', INPUT_LENGTH)
 X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
-
-# %%
 Xi, yi_expected = get_dataset(X_test, y_test, CLASS)
 
 # %% [markdown]
