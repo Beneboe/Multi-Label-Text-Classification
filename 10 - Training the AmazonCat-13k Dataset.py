@@ -1,4 +1,5 @@
 # %%
+import json
 from utils.dataset import get_dataset, import_dataset
 from utils.models import create_classifiers
 from itertools import chain
@@ -59,7 +60,7 @@ _, threshold_labels, _ = zip(*threshold_data)
 # %%
 def classifiers():
     return chain(
-        create_classifiers(8842, ['50%positive', '20%positive', '10%positive', 'unbalanced']),
+        # create_classifiers(8842, ['50%positive', '20%positive', '10%positive', 'unbalanced']),
         chain(*[create_classifiers(label, ['50%positive', 'unbalanced']) for label in top10_labels]),
         chain(*[create_classifiers(label, ['50%positive', 'unbalanced']) for label in threshold_labels]),
     )
@@ -83,5 +84,9 @@ for c in classifiers():
     Xi_test, yi_test = get_dataset(X_test, y_test, c.id)
     yi_predict = c.get_prediction(Xi_test)
     st.save_prediction(c.id, c.type_name, yi_predict)
+
+# %%
+with open("results/durations.json", 'w') as fp:
+    json.dump(durations, fp)
 
 # %%

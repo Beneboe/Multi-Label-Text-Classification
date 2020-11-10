@@ -52,4 +52,4 @@ def load_history(id, type_name):
 
 def save_history(id, type_name, history):
     with open(get_history_path(get_name(id, type_name)), 'w') as fp:
-        json.dump(history.history, fp)
+        json.dump(history, fp)
