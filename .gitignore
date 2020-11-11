@@ -140,12 +140,8 @@ dmypy.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
-# Ignore datasets
+# Ignore folders
 datasets/
-# Ignore models
 models/
-
 sjup.ps1
-
-# Ignore results
 results/
