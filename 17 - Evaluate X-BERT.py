@@ -40,8 +40,7 @@ _, threshold_labels, _ = zip(*threshold_data)
 # ## Load the prediction file
 
 # %%
-
-y_predict = smat.load_npz('datasets/X-BERT/???.predict.npz')
+y_predict = smat.load_npz('xbert/elmo-a0-s0/test.pred.xbert.npz')
 
 # %% [markdown]
 # ##  Map from original label index to X-BERT label index
