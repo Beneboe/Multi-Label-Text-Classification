@@ -41,24 +41,25 @@ _, threshold_labels, _ = zip(*threshold_data)
 
 # %%
 labels = top10_labels
-y_predict = [st.load_prediction(label, '50%positive') for label in labels]
+y_predict = np.array([st.load_prediction(label, '50%positive') for label in labels]).T
+y_expected = np.array([get_dataset(X_test, y_test, label)[1] for label in labels]).T
 
 # %% [markdown]
 # ##  Calculate the metrics per label
 
-# %% 
-def metrics(label):
-    _, yi_expected = get_dataset(X_test, y_test, label)
-    yi_predict = y_predict[labels.index(label)]
+# %%
+def metrics(label_id):
+    yi_expected = y_expected[:, label_id]
+    yi_predict = y_predict[:, label_id]
     return mt.all_metrics(yi_predict, yi_expected)
 
 # %% [markdown]
 # ## Calculate the micro and macro f1 measure
 
-# %% 
-ys_predict = y_predict
-ys_expected = y_test[:, labels]
-macro = mt.macro_f1measure(ys_predict, ys_expected)
-micro = mt.micro_f1measure(ys_predict, ys_expected)
+# %%
+macro = mt.macro_f1measure(y_predict, y_expected)
+micro = mt.micro_f1measure(y_predict, y_expected)
+print(f'Macro f1 measure {macro}')
+print(f'Micro f1 measure {micro}')
 
-# %% 
+# %%
