@@ -60,7 +60,7 @@ _, threshold_labels, _ = zip(*threshold_data)
 # %%
 def classifiers():
     return chain(
-        # create_classifiers(8842, ['50%positive', '20%positive', '10%positive', 'unbalanced']),
+        create_classifiers(8842, ['50%positive', '20%positive', '10%positive', 'unbalanced']),
         chain(*[create_classifiers(label, ['50%positive', 'unbalanced']) for label in top10_labels]),
         chain(*[create_classifiers(label, ['50%positive', 'unbalanced']) for label in threshold_labels]),
     )

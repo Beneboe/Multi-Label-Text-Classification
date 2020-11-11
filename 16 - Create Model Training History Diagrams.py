@@ -18,6 +18,6 @@ for type_name in type_names:
     history = st.load_history(CLASS, type_name)
     plot_history(history, name)
     plt.tight_layout()
-    plt.savefig(f'datasets/imgs/classifier_{name}_history.png', dpi=163)
-    plt.savefig(f'datasets/imgs/classifier_{name}_history.svg')
+    plt.savefig(f'results/imgs/classifier_{name}_history.png', dpi=163)
+    plt.savefig(f'results/imgs/classifier_{name}_history.pdf')
     plt.show()

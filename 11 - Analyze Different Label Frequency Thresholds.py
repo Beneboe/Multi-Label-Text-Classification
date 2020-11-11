@@ -1,24 +1,16 @@
 # %%
-from utils.models import create_classifier
-from keras import Sequential
-import numpy as np
+from utils.dataset import get_dataset, import_dataset
 import pandas as pd
 import matplotlib.pyplot as plt
 import utils.storage as st
+import utils.metrics as mt
 
 # %% [markdown]
 # # Analyze Different Label Frequency Thresholds
-# First, setup the hyperparameters.
 
 # %%
 INPUT_LENGTH = 10
-VALIDATION_SPLIT = 0.2
-CLASS_COUNT = 13330
-# CLASS_COUNT = 30
-TRAIN_PATH = 'datasets/AmazonCat-13K/trn.processed.json'
-TEST_PATH = 'datasets/AmazonCat-13K/tst.processed.json'
-EPOCHS = 30
-TRAINING_THRESHOLD = 2
+X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
 
 # %%
 threshold_data = [
@@ -27,7 +19,7 @@ threshold_data = [
     (1000,7393,996),
     (10000,84,9976),
     (50000,9202,48521),
-    # (100000,7083,96012),
+    (100000,7083,96012),
 ]
 thresholds, labels, frequencies = zip(*threshold_data)
 
@@ -36,8 +28,9 @@ thresholds, labels, frequencies = zip(*threshold_data)
 
 # %%
 def get_metric_data(label):
-    metrics = st.load_metrics(label, '50%positive')
-    return (metrics['precision'], metrics['recall'])
+    _, yi_expt = get_dataset(X_test, y_test, label)
+    yi_pred = st.load_prediction(label, '50%positive')
+    return (mt.precision(yi_expt, yi_pred), mt.recall(yi_expt, yi_pred))
 
 all_metric_data = [get_metric_data(label) for label in labels]
 precisions, recalls = zip(*all_metric_data)
@@ -54,10 +47,14 @@ plt.title('Classifier Frequency Performance')
 plt.xlabel('Label Frequency Levels')
 plt.legend(['Precision', 'Recall'])
 plt.grid()
-plt.savefig(f'datasets/imgs/AmazonCat-13K_classifier_frequency_performance.png', dpi=163)
+plt.savefig('results/imgs/label_frequency_performance.png', dpi=163)
+plt.savefig('results/imgs/label_frequency_performance.pdf')
 plt.show()
 
 # %%
 # Create the table for each of the thresholds
 
-pd.DataFrame(all_metric_data, index=formatted_thresholds, columns=['precision', 'recall'])
+table = pd.DataFrame(all_metric_data, index=formatted_thresholds, columns=['precision', 'recall'])
+table.to_csv('results/imgs_data/label_frequency_performance.csv')
+
+# %%

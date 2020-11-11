@@ -50,8 +50,8 @@ def metrics():
 for name, cm in zip(class_names, confusions()):
     plot_confusion(cm, name)
     plt.tight_layout()
-    plt.savefig(f'datasets/imgs/classifier_{name}_confusion.png', dpi=163)
-    plt.savefig(f'datasets/imgs/classifier_{name}_confusion.svg')
+    plt.savefig(f'results/imgs/classifier_{name}_confusion.png', dpi=163)
+    plt.savefig(f'results/imgs/classifier_{name}_confusion.pdf')
     plt.show()
 
 # %%
@@ -62,8 +62,8 @@ for i, (name, cm) in enumerate(zip(class_names, confusions())):
     plot_confusion(cm, name, ax)
 
 plt.tight_layout()
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_all_confusion.png', dpi=163)
-plt.savefig(f'datasets/imgs/classifier_{CLASS}_all_confusion.svg')
+plt.savefig(f'results/imgs/classifier_{CLASS}_all_confusion.png', dpi=163)
+plt.savefig(f'results/imgs/classifier_{CLASS}_all_confusion.pdf')
 
 # %% [markdown]
 # Create metrics comparison
@@ -71,7 +71,7 @@ metric_comparison = pd.DataFrame(
     list(metrics()),
     index=pd.Index([name for name in class_types]))
 
-metric_comparison.to_csv(f'results/{CLASS}_metric_comparison.csv')
+metric_comparison.to_csv(f'results/imgs_data/classifier_{CLASS}_all_metrics.csv')
 metric_comparison
 
 # %%

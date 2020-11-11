@@ -58,7 +58,7 @@ freqs_after = class_frequencies(CLASS_COUNT, df_after['y'])
 fig1, ax1 = plt.subplots()
 ax1.set_title('Class frequencies')
 ax1.boxplot(freqs_before)
-plt.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_boxplot.png', dpi=163)
+plt.savefig(f'results/imgs/AmazonCat-13K_{DATASET_TYPE}_boxplot.png', dpi=163)
 
 # %% [markdown]
 # Create a historgram for the frequencies.
@@ -78,7 +78,7 @@ ax2.hlines(freqs_median, 0, 1, transform=ax2.get_yaxis_transform(), color='tab:o
 # ax2.text(0, freqs_median, 'median', ha='left', va='bottom')
 ax2.legend(['mean', 'median'], loc='lower right')
 ax2.plot(np.arange(sorted.shape[0]), sorted)
-fig2.savefig(f'datasets/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163)
+fig2.savefig(f'results/imgs/AmazonCat-13K_{DATASET_TYPE}_histogram.png', dpi=163)
 
 # %% [markdown]
 # Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
