@@ -1,5 +1,5 @@
 # %%
-from utils.dataset import import_dataset, get_dataset
+from utils.dataset import import_amazoncat13k, get_dataset
 from utils.plots import plot_confusion
 from utils.models import random_prediction, prediction_threshold
 import utils.metrics as mt
@@ -12,7 +12,7 @@ import pandas as pd
 INPUT_LENGTH = 10
 CLASS = 8842
 
-X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
+X_test, y_test = import_amazoncat13k('tst', INPUT_LENGTH)
 Xi, yi_expected = get_dataset(X_test, y_test, CLASS)
 
 # %% [markdown]

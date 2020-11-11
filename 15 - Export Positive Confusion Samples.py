@@ -1,6 +1,6 @@
 from utils.models import Weighted50Classifier
 from utils.text_preprocessing import from_token_ids
-from utils.dataset import import_dataset, get_dataset
+from utils.dataset import import_amazoncat13k, get_dataset
 import numpy as np
 
 # %%
@@ -9,8 +9,8 @@ INPUT_LENGTH = 10
 CLASS = 8842
 
 # %%
-X_train, y_train = import_dataset('datasets/AmazonCat-13K/trn.processed.json', INPUT_LENGTH)
-X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
+X_train, y_train = import_amazoncat13k('trn.processed', INPUT_LENGTH)
+X_test, y_test = import_amazoncat13k('tst', INPUT_LENGTH)
 
 # %%
 Xi, yi_expected = get_dataset(X_test, y_test, CLASS)

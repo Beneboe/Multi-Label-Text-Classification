@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+import scipy.sparse as sp
 import gensim
 from keras.preprocessing.sequence import pad_sequences
 from numpy.random import default_rng
@@ -31,47 +31,38 @@ def class_frequencies(count, labels_array):
         freqs[label_ids] += 1
     return freqs
 
-def import_dataset(path, length):
-    ds_frame = pd.read_json(path, lines=True)
+def import_amazoncat13k(dataset, length):
+    X = np.load(f'datasets/AmazonCat-13K/X.{dataset}.npy')
+    y = sp.load_npz(f'datasets/AmazonCat-13K/Y.{dataset}.npz')
+
     # Make sequences same length
-    X = pad_sequences(ds_frame['X'], maxlen=length)
-    y = ds_frame['y']
+    X = pad_sequences(X, maxlen=length)
+
     return X, y
 
 def import_embedding_layer():
     model = gensim.models.KeyedVectors.load_word2vec_format("datasets/GoogleNews-vectors-negative300.bin", binary=True)
     return model.get_keras_embedding(train_embeddings=False)
 
-def is_positive(i):
-    return lambda y: i in y
-
-def is_negative(i):
-    return lambda y: i not in y
-
 def get_dataset(X, y, i, p_weight=None):
     rng = default_rng(42)
 
-    X_positive = X[y.map(is_positive(i))]
-    X_negative = X[y.map(is_negative(i))]
+    y = y[i]
+
+    ind = np.arange(X.shape[0])
+    pos_ind = ind[y == 1]
+    neg_ind = ind[y != 1]
 
     # Subsample negative indices
     if p_weight is not None:
-        p_count = min(int(X.shape[0] * p_weight), X_positive.shape[0])
+        p_count = min(int(X.shape[0] * p_weight), pos_ind.shape[0])
         n_count = int(p_count * ((1 - p_weight) / p_weight))
 
-        X_negative = rng.choice(X_negative, n_count, replace=False)
+        neg_ind = rng.choice(neg_ind, n_count, replace=False)
 
-    y_positive = np.ones(X_positive.shape[0], dtype='int8')
-    y_negative = np.zeros(X_negative.shape[0], dtype='int8')
+    new_ind = np.concatenate((pos_ind,neg_ind))
 
-    X = np.concatenate((X_positive,X_negative))
-    y = np.concatenate((y_positive,y_negative))
-
-    # Shuffle the data
-    indices = np.arange(X.shape[0])
-    rng.shuffle(indices)
-
-    X = X[indices]
-    y = y[indices]
+    X = X[new_ind]
+    y = y[new_ind]
 
     return X, y

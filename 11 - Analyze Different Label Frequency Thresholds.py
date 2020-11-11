@@ -1,5 +1,5 @@
 # %%
-from utils.dataset import get_dataset, import_dataset
+from utils.dataset import get_dataset, import_amazoncat13k
 import pandas as pd
 import matplotlib.pyplot as plt
 import utils.storage as st
@@ -10,7 +10,7 @@ import utils.metrics as mt
 
 # %%
 INPUT_LENGTH = 10
-X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
+X_test, y_test = import_amazoncat13k('tst', INPUT_LENGTH)
 
 # %%
 threshold_data = [

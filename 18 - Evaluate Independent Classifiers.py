@@ -1,12 +1,12 @@
 # %%
-from utils.dataset import get_dataset, import_dataset
+from utils.dataset import get_dataset, import_amazoncat13k
 import utils.metrics as mt
 import utils.storage as st
 import numpy as np
 
 # load the test set
 INPUT_LENGTH = 10
-X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
+X_test, y_test = import_amazoncat13k('tst', INPUT_LENGTH)
 
 # Top 10 most frequent labels ordered from most to least frequent
 # Order: label, frequency

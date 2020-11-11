@@ -1,6 +1,6 @@
 # %%
 import json
-from utils.dataset import get_dataset, import_dataset
+from utils.dataset import get_dataset, import_amazoncat13k
 from utils.models import create_classifiers
 from itertools import chain
 from timeit import default_timer as timer
@@ -18,8 +18,8 @@ CLASS_COUNT = 13330
 # Import the dataset and the embedding layer
 
 # %%
-X_train, y_train = import_dataset('datasets/AmazonCat-13K/trn.processed.json', INPUT_LENGTH)
-X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
+X_train, y_train = import_amazoncat13k('trn.processed', INPUT_LENGTH)
+X_test, y_test = import_amazoncat13k('tst', INPUT_LENGTH)
 
 # %% [markdown]
 # Define the model

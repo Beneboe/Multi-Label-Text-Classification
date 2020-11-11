@@ -1,12 +1,12 @@
 # %%
-from utils.dataset import get_dataset, import_dataset
+from utils.dataset import get_dataset, import_amazoncat13k
 import scipy.sparse as smat
 import utils.metrics as mt
 import numpy as np
 
 # load the test set
 INPUT_LENGTH = 10
-X_test, y_test = import_dataset('datasets/AmazonCat-13K/tst.processed.json', INPUT_LENGTH)
+X_test, y_test = import_amazoncat13k('tst', INPUT_LENGTH)
 
 # Top 10 most frequent labels ordered from most to least frequent
 # Order: label, frequency
@@ -40,19 +40,38 @@ _, threshold_labels, _ = zip(*threshold_data)
 # ## Load the prediction file
 
 # %%
-y_predict = smat.load_npz('xbert/elmo-a0-s0/test.pred.xbert.npz')
+y_predict = smat.load_npz('results/xbert/elmo-a0-s0/tst.pred.xbert.npz')
 
 # %% [markdown]
 # ##  Map from original label index to X-BERT label index
 
 # %%
-def xbert_map(label):
-    return label
+
+# Maps label text -> X-BERT label id
+label_map_xbert = {}
+with open('datasets/AmazonCat-13K/xbert_mapping.txt', 'r') as f:
+    for id, line in enumerate(f):
+        line = line.strip()
+        tpos = line.index('\t')
+        id_text = line[0:tpos]
+        label_text = line[(tpos+1):]
+        label_map_xbert[label_text] = id
+
+# Maps original label id -> label text
+label_id_map_original = [None] * 13_330
+with open('datasets/AmazonCat-13K/Yf.txt', 'r') as f:
+    for id, line in enumerate(f):
+        line = line.strip()
+        label_id_map_original[id] = line
+
+def xbert_map(og_label_id):
+    label_text = label_id_map_original[og_label_id]
+    return label_map_xbert[label_text]
 
 # %% [markdown]
 # ##  Calculate the metrics per label
 
-# %% 
+# %%
 def metrics(label):
     _, yi_expected = get_dataset(X_test, y_test, label)
     yi_predict = y_predict[:, xbert_map(label)]
@@ -61,11 +80,11 @@ def metrics(label):
 # %% [markdown]
 # ## Calculate the micro and macro f1 measure
 
-# %% 
+# %%
 lbs = [xbert_map(label) for label in top10_labels]
 ys_predict = y_predict[:, lbs]
 ys_expected = y_test[:, top10_labels]
 macro = mt.macro_f1measure(ys_predict, ys_expected)
 micro = mt.micro_f1measure(ys_predict, ys_expected)
 
-# %% 
+# %%
