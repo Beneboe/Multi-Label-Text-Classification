@@ -1,4 +1,5 @@
 # %%
+import json
 from utils.dataset import get_dataset, import_dataset
 from utils.models import create_classifiers
 from itertools import chain
@@ -83,5 +84,9 @@ for c in classifiers():
     Xi_test, yi_test = get_dataset(X_test, y_test, c.id)
     yi_predict = c.get_prediction(Xi_test)
     st.save_prediction(c.id, c.type_name, yi_predict)
+
+# %%
+with open("results/durations.json", 'w') as fp:
+    json.dump(durations, fp)
 
 # %%
