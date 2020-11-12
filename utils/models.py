@@ -3,7 +3,6 @@ from numpy.random import default_rng
 from keras import Sequential
 from keras.layers import LSTM, Dense, Dropout, Flatten,InputLayer
 from keras.callbacks import EarlyStopping
-import utils.metrics as mt
 import utils.storage as st
 import numpy as np
 import json
@@ -77,7 +76,7 @@ class Classifier:
         self.callbacks = [EarlyStopping(monitor='val_loss', patience=3, min_delta=0.0001)]
 
     def get_prediction(self, X):
-        return mt.get_prediction(self.model, X)
+        return self.model.predict(X).flatten()
 
     def save_weights(self):
         # Do not save the weights of the embedding layer

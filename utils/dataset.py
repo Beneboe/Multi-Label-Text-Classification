@@ -5,6 +5,34 @@ import gensim
 from keras.preprocessing.sequence import pad_sequences
 from numpy.random import default_rng
 
+
+amazoncat13k_top10_label_data = [
+    (1471,355211),
+    (7961,194561),
+    (7892,128026),
+    (9237,120090),
+    (7083,97803),
+    (7891,88967),
+    (4038,76277),
+    (10063,75035),
+    (12630,71667),
+    (8108,71667),
+]
+
+amazoncat13k_threshold_label_data = [
+    (50,6554,50),
+    (100,4949,100),
+    (1000,7393,996),
+    (10000,84,9976),
+    (50000,9202,48521),
+    (100000,7083,96012),
+]
+
+amazoncat13k_top10_labels, _ = zip(*amazoncat13k_top10_label_data)
+amazoncat13k_thresholds, amazoncat13k_threshold_labels, _ = zip(*amazoncat13k_threshold_label_data)
+
+
+# Statistical functions
 def get_stats(a):
     amax = a.max()
     amin = a.min()
@@ -32,6 +60,7 @@ def class_frequencies(count, labels_array):
         freqs[label_ids] += 1
     return freqs
 
+# Import functions
 def import_amazoncat13k(dataset, length):
     X = np.load(f'datasets/AmazonCat-13K/X.{dataset}.npy', allow_pickle=True)
     y = sp.load_npz(f'datasets/AmazonCat-13K/Y.{dataset}.npz')

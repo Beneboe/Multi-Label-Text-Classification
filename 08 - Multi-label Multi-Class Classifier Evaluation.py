@@ -124,7 +124,7 @@ report_data = np.zeros((CLASS_COUNT,), dtype=[
 # Initialize report data
 for i in range(CLASS_COUNT):
     _, X, _, y_expected = datasets[i]
-    y_predict = mt.get_prediction(classifiers[i], X)
+    y_predict = classifiers[i].predict(X).flatten()
 
     report_data[i] = (
         mt.count(y_predict, y_expected),
@@ -165,6 +165,11 @@ for i in range(CLASS_COUNT):
 # Library Metrics:
 
 # %%
+def get_all_predictions(models, X):
+    y_predict = np.zeros((X.shape[0],len(models)))
+    for i in range(len(models)):
+        y_predict[:,i] = models[i].predict(X).flatten()
+    return y_predict
 
 y_predict = mt.get_all_predictions(classifiers, X)
 y_expected = y
