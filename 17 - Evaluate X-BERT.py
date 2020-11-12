@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import scipy.sparse as sp
 import utils.metrics as mt
 import utils.dataset as ds
+import utils.storage as st
 import numpy as np
-from tensorflow.python.framework import sparse_tensor
 from sklearn.metrics import roc_curve
 
 # %%
@@ -59,30 +59,41 @@ def metrics(label):
 # ## Calculate the micro and macro f1 measure
 
 # %%
-mapped_labels = [to_xbert_id(label) for label in ds.amazoncat13k_top10_labels]
+labels = ds.amazoncat13k_top10_labels
+mapped_labels = [to_xbert_id(label) for label in labels]
 
-ys_predict = y_predict[:, mapped_labels].toarray()
-ys_expected = y_test[:, ds.amazoncat13k_top10_labels].toarray()
+xbert_y_predict = y_predict[:, mapped_labels].toarray()
+xbert_y_expect = y_test[:, labels].toarray()
 
-#%%
+# %%
 # The macro and micro metrics need the threshold applied
-ys_predict_bin = mt.apply_threshold(ys_predict)
-macro = mt.macro_f1measure(ys_predict_bin, ys_expected)
-micro = mt.micro_f1measure(ys_predict_bin, ys_expected)
+xbert_y_predict_bin = mt.apply_threshold(xbert_y_predict)
+macro = mt.macro_f1measure(xbert_y_predict_bin, xbert_y_expect)
+micro = mt.micro_f1measure(xbert_y_predict_bin, xbert_y_expect)
 
 print(f'Macro f1 measure {macro}')
 print(f'Micro f1 measure {micro}')
+
+# %%
+ova_y_predict = np.array([st.load_prediction(label, '50%positive') for label in labels]).T
+# Cannot use the same y_expect for xbert and ova because the test set was shuffled when the prediction for ova was
+# calculated and therefore the same shuffling needs to apply to y_expect
+ova_y_expect = np.array([ds.get_dataset(X_test, y_test, label)[1] for label in labels]).T
 
 # %% [markdown]
 # ## Create the ROC curve
 
 # %%
-fpr, tpr, _ = roc_curve(ys_expected.ravel(), ys_predict.ravel())
+fpr, tpr = dict(), dict()
+fpr['xbert'], tpr['xbert'], _ = roc_curve(xbert_y_expect.ravel(), xbert_y_predict.ravel())
+fpr['ova'], tpr['ova'], _ = roc_curve(ova_y_expect.ravel(), ova_y_predict.ravel())
 
 plt.figure()
 lw = 2
-plt.plot(fpr, tpr, color='darkorange',
-         lw=lw, label='ROC curve')
+plt.plot(fpr['xbert'], tpr['xbert'], color='darkorange',
+         lw=lw, label='ROC curve for X-BERT prediction')
+plt.plot(fpr['ova'], tpr['ova'], color='aqua',
+         lw=lw, label='ROC curve for OvA prediction')
 plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
@@ -90,6 +101,9 @@ plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('Receiver operating characteristic')
 plt.legend(loc="lower right")
+
+plt.savefig(f'results/imgs/roc_curve.png', dpi=163)
+plt.savefig(f'results/imgs/roc_curve.pdf')
 plt.show()
 
 # %%
