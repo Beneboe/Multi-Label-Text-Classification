@@ -61,16 +61,16 @@ The top 10 most frequent labels are
 
 | Label id | Label | # of occurences |
 | - | - | - |
-| 1471 | books | 355211 |
-| 7961 | music | 194561 |
-| 7892 | movies & tv | 128026 |
-| 9237 | pop | 120090 |
-| 7083 | literature & fiction | 97803 |
-| 7891 | movies | 88967 |
-| 4038 | education & reference | 76277 |
-| 10063 | rock | 75035 |
-| 12630 | used & rental textbooks | 71667 |
-| 8108 | new | 71667 |
+| 1471 | books | 355,211 |
+| 7961 | music | 194,561 |
+| 7892 | movies & tv | 128,026 |
+| 9237 | pop | 120,090 |
+| 7083 | literature & fiction | 97,803 |
+| 7891 | movies | 88,967 |
+| 4038 | education & reference | 76,277 |
+| 10063 | rock | 75,035 |
+| 12630 | used & rental textbooks | 71,667 |
+| 8108 | new | 71,667 |
 
 Labels that occur at most
 
@@ -79,6 +79,6 @@ Labels that occur at most
 | 6554 | john | 50 | 50 |
 | 4949 | fountains | 100 | 100 |
 | 7393 | marriage | 1,000 | 996 |
-| 84 | accessories & supplies | 10,000 | 9976 |
-| 9202 | politics & social sciences | 50,000 | 48521 |
-| 7083 | literature & fiction | 100,000 | 96012 |
+| 84 | accessories & supplies | 10,000 | 9,976 |
+| 9202 | politics & social sciences | 50,000 | 48,521 |
+| 7083 | literature & fiction | 100,000 | 96,012 |
