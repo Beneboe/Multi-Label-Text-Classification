@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.sparse as sp
+import pandas as pd
 import gensim
 from keras.preprocessing.sequence import pad_sequences
 from numpy.random import default_rng
@@ -32,7 +33,7 @@ def class_frequencies(count, labels_array):
     return freqs
 
 def import_amazoncat13k(dataset, length):
-    X = np.load(f'datasets/AmazonCat-13K/X.{dataset}.npy')
+    X = np.load(f'datasets/AmazonCat-13K/X.{dataset}.npy', allow_pickle=True)
     y = sp.load_npz(f'datasets/AmazonCat-13K/Y.{dataset}.npz')
 
     # Make sequences same length
@@ -47,11 +48,12 @@ def import_embedding_layer():
 def get_dataset(X, y, i, p_weight=None):
     rng = default_rng(42)
 
-    y = y[i]
+    yi = y[:, i].toarray().flatten()
 
     ind = np.arange(X.shape[0])
-    pos_ind = ind[y == 1]
-    neg_ind = ind[y != 1]
+    mask = yi == 1
+    pos_ind = ind[mask]
+    neg_ind = ind[~mask]
 
     # Subsample negative indices
     if p_weight is not None:
@@ -61,8 +63,9 @@ def get_dataset(X, y, i, p_weight=None):
         neg_ind = rng.choice(neg_ind, n_count, replace=False)
 
     new_ind = np.concatenate((pos_ind,neg_ind))
+    rng.shuffle(new_ind)
 
     X = X[new_ind]
-    y = y[new_ind]
+    yi = yi[new_ind]
 
-    return X, y
+    return X, yi
