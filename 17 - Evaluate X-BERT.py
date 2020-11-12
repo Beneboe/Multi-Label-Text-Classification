@@ -48,25 +48,26 @@ y_predict = smat.load_npz('results/xbert/elmo-a0-s0/tst.pred.xbert.npz')
 # %%
 
 # Maps label text -> X-BERT label id
-label_map_xbert = {}
+xbert_label_map = {}
 with open('datasets/AmazonCat-13K/xbert_mapping.txt', 'r') as f:
     for id, line in enumerate(f):
         line = line.strip()
         tpos = line.index('\t')
         id_text = line[0:tpos]
         label_text = line[(tpos+1):]
-        label_map_xbert[label_text] = id
+        xbert_label_map[label_text] = id
 
 # Maps original label id -> label text
-label_id_map_original = [None] * 13_330
+original_id_map = [None] * 13_330
 with open('datasets/AmazonCat-13K/Yf.txt', 'r') as f:
     for id, line in enumerate(f):
         line = line.strip()
-        label_id_map_original[id] = line
+        original_id_map[id] = line
 
-def xbert_map(og_label_id):
-    label_text = label_id_map_original[og_label_id]
-    return label_map_xbert[label_text]
+# Maps original label id -> X-BERT label id
+def to_xbert_id(og_label_id):
+    label_text = original_id_map[og_label_id]
+    return xbert_label_map[label_text]
 
 # %% [markdown]
 # ##  Calculate the metrics per label
@@ -74,17 +75,24 @@ def xbert_map(og_label_id):
 # %%
 def metrics(label):
     _, yi_expected = get_dataset(X_test, y_test, label)
-    yi_predict = y_predict[:, xbert_map(label)]
+    yi_predict = y_predict[:, to_xbert_id(label)]
     return mt.all_metrics(yi_predict, yi_expected)
 
 # %% [markdown]
 # ## Calculate the micro and macro f1 measure
 
 # %%
-lbs = [xbert_map(label) for label in top10_labels]
-ys_predict = y_predict[:, lbs]
-ys_expected = y_test[:, top10_labels]
+mapped_labels = [to_xbert_id(label) for label in top10_labels]
+
+ys_predict = y_predict[:, mapped_labels].toarray()
+# Apply threshold
+ys_predict = (ys_predict > 0.5).astype("int8")
+ys_expected = y_test[:, top10_labels].toarray()
+
 macro = mt.macro_f1measure(ys_predict, ys_expected)
 micro = mt.micro_f1measure(ys_predict, ys_expected)
+
+print(f'Macro f1 measure {macro}')
+print(f'Micro f1 measure {micro}')
 
 # %%
