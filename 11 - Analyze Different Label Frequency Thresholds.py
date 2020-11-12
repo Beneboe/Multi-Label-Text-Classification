@@ -19,7 +19,7 @@ X_test, y_test = ds.import_amazoncat13k('tst', INPUT_LENGTH)
 def get_metric_data(label):
     _, yi_expt = ds.get_dataset(X_test, y_test, label)
     yi_pred = st.load_prediction(label, '50%positive')
-    return (mt.precision(yi_expt, yi_pred), mt.recall(yi_expt, yi_pred))
+    return (mt.precision(yi_pred, yi_expt), mt.recall(yi_pred, yi_expt))
 
 all_metric_data = [get_metric_data(label) for label in ds.amazoncat13k_threshold_labels]
 precisions, recalls = zip(*all_metric_data)

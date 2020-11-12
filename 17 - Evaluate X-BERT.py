@@ -62,18 +62,21 @@ def metrics(label):
 mapped_labels = [to_xbert_id(label) for label in ds.amazoncat13k_top10_labels]
 
 ys_predict = y_predict[:, mapped_labels].toarray()
-# Apply threshold
-ys_predict_bin = (ys_predict > 0.5).astype("int8")
 ys_expected = y_test[:, ds.amazoncat13k_top10_labels].toarray()
 
+#%%
+# The macro and micro metrics need the threshold applied
+ys_predict_bin = mt.apply_threshold(ys_predict)
 macro = mt.macro_f1measure(ys_predict_bin, ys_expected)
 micro = mt.micro_f1measure(ys_predict_bin, ys_expected)
 
 print(f'Macro f1 measure {macro}')
 print(f'Micro f1 measure {micro}')
 
-# %%
+# %% [markdown]
+# ## Create the ROC curve
 
+# %%
 fpr, tpr, _ = roc_curve(ys_expected.ravel(), ys_predict.ravel())
 
 plt.figure()

@@ -2,16 +2,16 @@ from typing import Tuple, List, Dict, Any
 import numpy as np
 
 # Helper functions
-def binarize(y_predict, threshold = 0.5):
+def apply_threshold(y_predict, threshold = 0.5):
     return (y_predict > threshold).astype('int8')
 
 def get_confusion(y_predict, y_expected, threshold = 0.5) -> Tuple[int, int, int, int]:
-    y_predict = binarize(y_predict, threshold)
+    y_predict_bin = apply_threshold(y_predict, threshold)
 
-    tp_items = np.logical_and(y_predict == 1, y_expected == 1)
-    fp_items = np.logical_and(y_predict == 1, y_expected == 0)
-    fn_items = np.logical_and(y_predict == 0, y_expected == 1)
-    tn_items = np.logical_and(y_predict == 0, y_expected == 0)
+    tp_items = np.logical_and(y_predict_bin == 1, y_expected == 1)
+    fp_items = np.logical_and(y_predict_bin == 1, y_expected == 0)
+    fn_items = np.logical_and(y_predict_bin == 0, y_expected == 1)
+    tn_items = np.logical_and(y_predict_bin == 0, y_expected == 0)
 
     tp = np.count_nonzero(tp_items, axis=0)
     fp = np.count_nonzero(fp_items, axis=0)

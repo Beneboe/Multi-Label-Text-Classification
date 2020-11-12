@@ -7,7 +7,7 @@ def get_name(id, type_name):
 
 # Metrics storage
 def get_prediction_path(name) -> str:
-    return f'results/predict/{name}.npz'
+    return f'results/predict/{name}.npy'
 
 def get_metrics_path(name) -> str:
     return f'results/metrics/{name}.json'
@@ -16,12 +16,10 @@ def get_confusions_path(name) -> str:
     return f'results/confusions/{name}.json'
 
 def load_prediction(id, type_name):
-    with open(get_prediction_path(get_name(id, type_name)), 'rb') as fp:
-        return np.load(fp)
+    return np.load(get_prediction_path(get_name(id, type_name)))
 
 def save_prediction(id, type_name, y_predict):
-    with open(get_prediction_path(get_name(id, type_name)), 'wb') as fp:
-        np.save(fp, y_predict)
+    return np.save(get_prediction_path(get_name(id, type_name)), y_predict)
 
 def load_metrics(id, type_name):
     with open(get_metrics_path(get_name(id, type_name)), 'r') as fp:

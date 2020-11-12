@@ -2,7 +2,9 @@
 import utils.metrics as mt
 import utils.storage as st
 import utils.dataset as ds
+import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.metrics import roc_curve
 
 # load the test set
 INPUT_LENGTH = 10
@@ -33,5 +35,22 @@ macro = mt.macro_f1measure(y_predict, y_expected)
 micro = mt.micro_f1measure(y_predict, y_expected)
 print(f'Macro f1 measure {macro}')
 print(f'Micro f1 measure {micro}')
+
+
+# %%
+fpr, tpr, _ = roc_curve(y_expected.ravel(), y_predict.ravel())
+
+plt.figure()
+lw = 2
+plt.plot(fpr, tpr, color='darkorange',
+         lw=lw, label='ROC curve')
+plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver operating characteristic')
+plt.legend(loc="lower right")
+plt.show()
 
 # %%
