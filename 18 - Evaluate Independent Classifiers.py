@@ -28,13 +28,13 @@ def metrics(label_id):
     return mt.all_metrics(yi_predict, yi_expected)
 
 # %% [markdown]
-# ## Calculate the micro and macro f1 measure
+# ## Calculate the micro and macro f1score
 
 # %%
-macro = mt.macro_f1measure(y_predict, y_expected)
-micro = mt.micro_f1measure(y_predict, y_expected)
-print(f'Macro f1 measure {macro}')
-print(f'Micro f1 measure {micro}')
+macro = mt.macro_f1score(y_predict, y_expected)
+micro = mt.micro_f1score(y_predict, y_expected)
+print(f'Macro f1score {macro}')
+print(f'Micro f1score {micro}')
 
 
 # %%

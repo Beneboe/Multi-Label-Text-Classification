@@ -118,7 +118,7 @@ report_data = np.zeros((CLASS_COUNT,), dtype=[
     ("accuracy", "f4"),
     ("recall", "f4"),
     ("precision", "f4"),
-    ("f1 measure", "f4"),
+    ("f1score", "f4"),
 ])
 
 # Initialize report data
@@ -131,7 +131,7 @@ for i in range(CLASS_COUNT):
         mt.accuracy(y_predict, y_expected),
         mt.recall(y_predict, y_expected),
         mt.precision(y_predict, y_expected),
-        mt.f1measure(y_predict, y_expected),
+        mt.f1score(y_predict, y_expected),
     )
 
 report = pd.DataFrame(report_data)
@@ -174,5 +174,5 @@ def get_all_predictions(models, X):
 y_predict = mt.get_all_predictions(classifiers, X)
 y_expected = y
 
-print("macro f1 measure:", mt.macro_f1measure(y_predict, y_expected))
-print("micro f1 measure:", mt.micro_f1measure(y_predict, y_expected))
+print("macro f1score:", mt.macro_f1score(y_predict, y_expected))
+print("micro f1score:", mt.micro_f1score(y_predict, y_expected))

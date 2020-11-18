@@ -56,7 +56,7 @@ def metrics(label):
     return mt.all_metrics(yi_predict, yi_expected)
 
 # %% [markdown]
-# ## Calculate the micro and macro f1 measure
+# ## Calculate the micro and macro f1score
 
 # %%
 labels = ds.amazoncat13k_top10_labels
@@ -68,11 +68,11 @@ xbert_y_expect = y_test[:, labels].toarray()
 # %%
 # The macro and micro metrics need the threshold applied
 xbert_y_predict_bin = mt.apply_threshold(xbert_y_predict)
-macro = mt.macro_f1measure(xbert_y_predict_bin, xbert_y_expect)
-micro = mt.micro_f1measure(xbert_y_predict_bin, xbert_y_expect)
+macro = mt.macro_f1score(xbert_y_predict_bin, xbert_y_expect)
+micro = mt.micro_f1score(xbert_y_predict_bin, xbert_y_expect)
 
-print(f'Macro f1 measure {macro}')
-print(f'Micro f1 measure {micro}')
+print(f'Macro f1score {macro}')
+print(f'Micro f1score {micro}')
 
 # %%
 ova_y_predict = np.array([st.load_prediction(label, '50%positive') for label in labels]).T

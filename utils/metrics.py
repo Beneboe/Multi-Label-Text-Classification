@@ -37,7 +37,7 @@ def precision(y_predict, y_expected, threshold = 0.5) -> float:
     tp, fp, _, _ = get_confusion(y_predict, y_expected, threshold)
     return tp / (tp + fp)
 
-def f1measure(y_predict, y_expected, threshold = 0.5) -> float:
+def f1score(y_predict, y_expected, threshold = 0.5) -> float:
     pr = precision(y_predict, y_expected, threshold)
     rc = recall(y_predict, y_expected, threshold)
     return 2 * (pr * rc) / (pr + rc)
@@ -47,16 +47,28 @@ def all_metrics(y_predict, y_expected, threshold = 0.5) -> Dict[str, Any]:
         'accuracy': accuracy(y_predict, y_expected),
         'recall': recall(y_predict, y_expected),
         'precision': precision(y_predict, y_expected),
-        'f1 measure': f1measure(y_predict, y_expected),
+        'f1score': f1score(y_predict, y_expected),
     }
 
-def macro_f1measure(y_predict, y_expected) -> float:
+def macro(metric):
+    def macro_metric(y_predict, y_expected, threshold = 0.5):
+        class_count = y_expected.T.shape[0]
+        metric_values = [metric(y_predict.T[i], y_expected.T[i], threshold) for i in range(class_count)]
+        return metric_values.average()
+    return macro_metric
+
+def micro(metric):
+    def micro_metric(y_predict, y_expected, threshold = 0.5):
+        return metric(y_predict.ravel(), y_expected.ravel(), threshold)
+    return micro_metric
+
+def macro_f1score(y_predict, y_expected) -> float:
     class_count = y_expected.T.shape[0]
     # Collect the F1 Measures for each class
-    f1s = [f1measure(y_predict.T[i], y_expected.T[i]) for i in range(class_count)]
+    f1s = [f1score(y_predict.T[i], y_expected.T[i]) for i in range(class_count)]
     return np.average(f1s)
 
-def micro_f1measure(y_predict, y_expected) -> float:
+def micro_f1score(y_predict, y_expected) -> float:
     # Same as accuracy over the entire array
     true_count = np.count_nonzero((y_predict == y_expected).all(axis=1))
     return true_count / (y_predict.shape[0])

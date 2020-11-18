@@ -30,7 +30,7 @@ def test_precision():
     y_expected = np.array([1, 0, 1, 0])
     assert mt.precision(y_predict, y_expected) == 0.5
 
-def test_f1measure():
+def test_f1score():
     y_predict = np.array([1, 1, 0, 0])
     y_expected = np.array([1, 0, 1, 0])
-    assert mt.f1measure(y_predict, y_expected) == 0.5
+    assert mt.f1score(y_predict, y_expected) == 0.5
