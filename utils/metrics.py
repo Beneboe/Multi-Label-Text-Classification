@@ -44,10 +44,10 @@ def f1score(y_predict, y_expected, threshold = 0.5) -> float:
 
 def all_metrics(y_predict, y_expected, threshold = 0.5) -> Dict[str, Any]:
     return {
-        'accuracy': accuracy(y_predict, y_expected),
-        'recall': recall(y_predict, y_expected),
-        'precision': precision(y_predict, y_expected),
-        'f1score': f1score(y_predict, y_expected),
+        'accuracy': accuracy(y_predict, y_expected, threshold),
+        'recall': recall(y_predict, y_expected, threshold),
+        'precision': precision(y_predict, y_expected, threshold),
+        'f1score': f1score(y_predict, y_expected, threshold),
     }
 
 def macro(metric):

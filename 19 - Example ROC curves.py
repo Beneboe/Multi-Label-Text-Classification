@@ -26,7 +26,7 @@ plt.figure()
 lw = 2
 # plt.plot(fpr['best'], tpr['best'], color='darkorange', lw=lw, label='')
 plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--', label='Random classifier')
-plt.plot(fpr['good'], tpr['good'], color='darkgreen', lw=lw, label='Good classifier', clip_on=False, zorder = 1000)
+plt.plot(fpr['good'], tpr['good'], color='darkgreen', lw=lw, label='Example classifier', clip_on=False, zorder = 1000)
 plt.plot([0, 0, 1], [0, 1, 1], color='darkorange', lw=lw, label='Ideal classifier', clip_on=False, zorder = 1000)
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
