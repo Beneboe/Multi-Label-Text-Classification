@@ -35,26 +35,24 @@ def classifiers():
 
 # %%
 durations = {}
+try:
+    for c in classifiers():
+        print(f"Training classifier '{c.name}'.")
 
-for c in classifiers():
-    durations[c.name] = []
+        start = timer()
+        c.train(X_train, y_train)
+        end = timer()
 
-    print(f"Training classifier '{c.name}'.")
+        duration = end - start
+        durations[c.name] = duration
+        print(f"Training took {duration} seconds.")
 
-    start = timer()
-    c.train(X_train, y_train)
-    end = timer()
+        Xi_test, yi_test = ds.get_dataset(X_test, y_test, c.id)
+        yi_predict = c.get_prediction(Xi_test)
+        st.save_prediction(c.id, c.type_name, yi_predict)
+finally:
+    with open("results/durations.json", 'w') as fp:
+        json.dump(durations, fp)
 
-    duration = end - start
-    durations[c.id].append(duration)
-    print(f"Training took {duration} seconds.")
-
-    Xi_test, yi_test = ds.get_dataset(X_test, y_test, c.id)
-    yi_predict = c.get_prediction(Xi_test)
-    st.save_prediction(c.id, c.type_name, yi_predict)
-
-# %%
-with open("results/durations.json", 'w') as fp:
-    json.dump(durations, fp)
 
 # %%

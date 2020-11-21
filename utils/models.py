@@ -59,7 +59,7 @@ def load_model(input_length, model_type=1):
     return (model, inner_model)
 
 class Classifier:
-    def __init__(self, id, type_name, p_weight, threshold=10, epochs=30, batch_size=32, skip_model=False) -> None:
+    def __init__(self, id, type_name, p_weight, threshold=8, epochs=30, batch_size=32, skip_model=False) -> None:
         self.id = id
         self.type_name = type_name
         self.name = st.get_name(self.id, self.type_name)
@@ -93,8 +93,13 @@ class Classifier:
         Xi, yi = get_dataset(X_train, y_train, self.id, self.p_weight)
 
         # Only split and train dataset if there is enough data
-        if Xi.shape[0] > self.threshold:
+        if Xi.shape[0] >= self.threshold:
             # Train the classifier and save the history
+
+            [print(i.shape, i.dtype) for i in self.model.inputs]
+            [print(o.shape, o.dtype) for o in self.model.outputs]
+            [print(l.name, l.input_shape, l.dtype) for l in self.model.layers]
+
             history = self.model.fit(
                 Xi, yi,
                 epochs=self.epochs, batch_size=self.batch_size, callbacks=self.callbacks,

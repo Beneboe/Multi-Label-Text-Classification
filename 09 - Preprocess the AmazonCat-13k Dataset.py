@@ -23,7 +23,7 @@ def preprocess_amazoncat13k(dataset, append_content=False):
         for col in row_data:
             row_inds.append(row_ind)
             col_inds.append(col)
-    Y_csc_data = np.ones(len(row_inds), dtype='int32')
+    Y_csc_data = np.ones(len(row_inds), dtype='int8')
 
     X = preprocess(df['title'])
     Y = sp.csc_matrix((Y_csc_data, (row_inds, col_inds)), shape=(row_count, CLASS_COUNT))
