@@ -96,10 +96,6 @@ class Classifier:
         if Xi.shape[0] >= self.threshold:
             # Train the classifier and save the history
 
-            [print(i.shape, i.dtype) for i in self.model.inputs]
-            [print(o.shape, o.dtype) for o in self.model.outputs]
-            [print(l.name, l.input_shape, l.dtype) for l in self.model.layers]
-
             history = self.model.fit(
                 Xi, yi,
                 epochs=self.epochs, batch_size=self.batch_size, callbacks=self.callbacks,
