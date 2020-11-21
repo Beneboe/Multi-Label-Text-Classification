@@ -20,16 +20,15 @@ amazoncat13k_top10_label_data = [
 ]
 
 amazoncat13k_threshold_label_data = [
-    (50,6554,50),
-    (100,4949,100),
-    (1000,7393,996),
-    (10000,84,9976),
-    (50000,9202,48521),
-    (100000,7083,96012),
+    (6853,10,10),
+    (9971,100,100),
+    (3175,1000,1000),
+    (1370,9954,10000),
+    (7083,97803,100000),
 ]
 
 amazoncat13k_top10_labels, _ = zip(*amazoncat13k_top10_label_data)
-amazoncat13k_thresholds, amazoncat13k_threshold_labels, _ = zip(*amazoncat13k_threshold_label_data)
+amazoncat13k_threshold_labels, _, amazoncat13k_thresholds = zip(*amazoncat13k_threshold_label_data)
 
 # Import functions
 def import_amazoncat13k(dataset, length):

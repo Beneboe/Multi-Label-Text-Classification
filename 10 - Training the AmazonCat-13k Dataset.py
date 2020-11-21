@@ -8,7 +8,6 @@ from timeit import default_timer as timer
 
 # %% [markdown]
 # # Training on the AmazonCat-13k Dataset
-# First, setup the hyperparameters.
 
 # %%
 INPUT_LENGTH = 10
@@ -38,7 +37,7 @@ def classifiers():
 durations = {}
 
 for c in classifiers():
-    durations[c.id] = []
+    durations[c.name] = []
 
     print(f"Training classifier '{c.name}'.")
 
