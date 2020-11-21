@@ -42,7 +42,7 @@ def remove_tokens_under(X, y, token_threshold=0):
     y = y[remove_indices]
     return X, y
 
-X, Y = preprocess_amazoncat13k('tst')
+X, Y = preprocess_amazoncat13k('trn')
 # X, Y = preprocess_amazoncat13k('trn', append_content=True)
 np.save('datasets/AmazonCat-13K/X.trn.raw.npy', X)
 sp.save_npz('datasets/AmazonCat-13K/Y.trn.raw.npz', Y)
