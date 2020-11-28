@@ -1,4 +1,6 @@
 # %%
+from operator import sub
+from numpy.lib.function_base import append
 import pandas as pd
 import numpy as np
 import scipy.sparse as sp
@@ -24,6 +26,13 @@ Y_raw = sp.load_npz(f'datasets/AmazonCat-13K/Y.trn.raw.npz')
 
 X_processed = np.load(f'datasets/AmazonCat-13K/X.trn.processed.npy', allow_pickle=True)
 Y_processed = sp.load_npz(f'datasets/AmazonCat-13K/Y.trn.processed.npz')
+
+# %%
+label_text = [None] * 13_330
+with open('datasets/AmazonCat-13K/Yf.txt', 'r') as f:
+    for id, line in enumerate(f):
+        line = line.strip()
+        label_text[id] = line
 
 # %% [markdown]
 # The dataset has the fields: *uid*, *title*, *content*, *target_ind*, *target_rel*.
@@ -184,3 +193,72 @@ top10freqs = pd.DataFrame(
 top10freqs.to_csv(f'datasets/AmazonCat-13K/stats/top10.csv')
 
 #%%
+def imbalance_ratio(label):
+    y = Y_raw[:, label].toarray().flatten()
+
+    assert len(y.shape) == 1
+
+    y_neg = np.count_nonzero(y == 0)
+    y_pos = np.count_nonzero(y == 1)
+
+    assert (y_neg + y_pos) == y.shape[0]
+
+    return float(max(y_neg, y_pos))/float(min(y_neg, y_pos))
+
+# %% Find out the imbalance ratio for 'natural history'
+imbalance_ratio(8035)
+
+# %% Find out the imbalance ratio for 'books'
+imbalance_ratio(1471)
+
+# %%
+def is_subclass(label1, label2):
+    rows = Y_raw[:, label2].nonzero()[0]
+    return all(Y_raw[rows, label1].toarray().flatten() == 1)
+
+# %% Is 'natural history' a subclass of 'books'
+is_subclass(1471, 8035)
+
+# %%
+def sub_classes(label):
+    label_rows = Y_raw[:, label].nonzero()[0]
+    nonlabel_rows = np.delete(np.arange(Y_raw.shape[0]), label_rows)
+
+    nonlabel_cols = np.unique(Y_raw[nonlabel_rows, :].nonzero()[1])
+    label_cols = np.delete(np.arange(Y_raw.shape[1]), nonlabel_cols)
+
+    return label_cols
+
+def co_occurrences(label):
+    rows = Y_raw[:, label].nonzero()[0]
+
+    col_sums = np.squeeze(np.asarray(Y_raw[rows, :].sum(0)))
+
+    cols = np.arange(Y_raw.shape[1])[col_sums == rows.shape[0]]
+
+    return cols
+
+# %% Test the function
+books_sub_classes = sub_classes(1471)
+all(is_subclass(1471, label) for label in books_sub_classes[:100])
+
+# %% Write the subclasses of books
+with open('datasets/AmazonCat-13K/subclasses/books.txt', 'w') as f:
+    f.writelines((label_text[label] + "\n" for label in books_sub_classes))
+
+# %% Write the subclasses of music
+music_sub_classes = sub_classes(7961)
+
+with open('datasets/AmazonCat-13K/subclasses/music.txt', 'w') as f:
+    f.writelines((label_text[label] + "\n" for label in music_sub_classes))
+
+# %% Write the subclasses of movies & tv
+moviestv_sub_classes = sub_classes(7892)
+
+with open('datasets/AmazonCat-13K/subclasses/moviestv.txt', 'w') as f:
+    f.writelines((label_text[label] + "\n" for label in moviestv_sub_classes))
+
+# %% Get the co-occurrences of natural history
+[label_text[label] for label in co_occurrences(8035)]
+
+# %%
