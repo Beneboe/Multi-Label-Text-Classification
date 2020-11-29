@@ -105,6 +105,16 @@ plt.grid()
 fig2.savefig(f'datasets/AmazonCat-13K/stats/histogram.png', dpi=163)
 fig2.savefig(f'datasets/AmazonCat-13K/stats/histogram.pdf')
 
+# %%
+hist, bins = np.histogram(samples_per_label_raw, bins=50)
+logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
+plt.hist(samples_per_label_raw, bins=logbins)
+plt.xscale('log')
+plt.title('Samples per label distribution')
+plt.xlabel('Samples per label')
+plt.ylabel('Frequency')
+plt.show()
+
 # %% [markdown]
 # Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
 
@@ -267,6 +277,13 @@ plt.show()
 
 # %%
 plt.hexbin(np.log10(samples_per_label_raw), ncoo_sum, gridsize=30)
+plt.show()
+
+# %%
+hist, xbins, ybins = np.histogram2d(samples_per_label_raw, ncoo_sum, bins=50)
+logxbins = np.logspace(np.log10(xbins[0]), np.log10(xbins[-1]), len(xbins))
+plt.hist2d(samples_per_label_raw, ncoo_sum, [logxbins,ybins])
+plt.xscale('log')
 plt.show()
 
 # %%
