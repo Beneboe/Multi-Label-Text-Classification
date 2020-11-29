@@ -1,6 +1,5 @@
 # %%
-from operator import sub
-from numpy.lib.function_base import append
+from matplotlib import cm
 import pandas as pd
 import numpy as np
 import scipy.sparse as sp
@@ -212,53 +211,59 @@ imbalance_ratio(8035)
 imbalance_ratio(1471)
 
 # %%
-def is_subclass(label1, label2):
-    rows = Y_raw[:, label2].nonzero()[0]
-    return all(Y_raw[rows, label1].toarray().flatten() == 1)
+coo = Y_raw.astype('float32')
+coo = coo.transpose().dot(coo)
+dia = coo.diagonal()
 
-# %% Is 'natural history' a subclass of 'books'
-is_subclass(1471, 8035)
+# row: label, col: probability distribution of row
+ncoo = (coo.transpose() / dia).transpose()
 
 # %%
 def sub_classes(label):
-    label_rows = Y_raw[:, label].nonzero()[0]
-    nonlabel_rows = np.delete(np.arange(Y_raw.shape[0]), label_rows)
-
-    nonlabel_cols = np.unique(Y_raw[nonlabel_rows, :].nonzero()[1])
-    label_cols = np.delete(np.arange(Y_raw.shape[1]), nonlabel_cols)
-
-    return label_cols
+    m = np.squeeze(np.asarray(ncoo[:, label] == 1.0))
+    labels = np.arange(ncoo.shape[0])
+    return [label_text[l] for l in labels[m]]
 
 def co_occurrences(label):
-    rows = Y_raw[:, label].nonzero()[0]
-
-    col_sums = np.squeeze(np.asarray(Y_raw[rows, :].sum(0)))
-
-    cols = np.arange(Y_raw.shape[1])[col_sums == rows.shape[0]]
-
-    return cols
-
-# %% Test the function
-books_sub_classes = sub_classes(1471)
-all(is_subclass(1471, label) for label in books_sub_classes[:100])
+    m = np.squeeze(np.asarray(ncoo[label] == 1.0))
+    labels = np.arange(ncoo.shape[0])
+    return [label_text[l] for l in labels[m]]
 
 # %% Write the subclasses of books
+books_sub_classes = sub_classes(1471)
 with open('datasets/AmazonCat-13K/subclasses/books.txt', 'w') as f:
-    f.writelines((label_text[label] + "\n" for label in books_sub_classes))
+    f.writelines((label + "\n" for label in books_sub_classes))
 
 # %% Write the subclasses of music
 music_sub_classes = sub_classes(7961)
 
 with open('datasets/AmazonCat-13K/subclasses/music.txt', 'w') as f:
-    f.writelines((label_text[label] + "\n" for label in music_sub_classes))
+    f.writelines((label + "\n" for label in music_sub_classes))
 
 # %% Write the subclasses of movies & tv
 moviestv_sub_classes = sub_classes(7892)
 
 with open('datasets/AmazonCat-13K/subclasses/moviestv.txt', 'w') as f:
-    f.writelines((label_text[label] + "\n" for label in moviestv_sub_classes))
+    f.writelines((label + "\n" for label in moviestv_sub_classes))
+
+# %% Is 'natural history' a subclass of 'books'
+ncoo[8035, 1471] == 1.0
 
 # %% Get the co-occurrences of natural history
-[label_text[label] for label in co_occurrences(8035)]
+co_occurrences(8035)
 
 # %%
+ncoo_sum = ncoo.sum(1)
+ncoo_sum = np.squeeze(np.asarray(ncoo_sum))
+
+# %%
+plt.title('Co-Occurrences by Label Frequency')
+plt.xlabel('# of samples per label')
+plt.ylabel('summed co-occurences')
+plt.scatter(samples_per_label_raw, ncoo_sum)
+plt.xscale('log')
+plt.show()
+
+# %%
+plt.hexbin(np.log10(samples_per_label_raw), ncoo_sum, gridsize=20)
+plt.show()
