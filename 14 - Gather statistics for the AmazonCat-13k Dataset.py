@@ -253,7 +253,8 @@ ncoo[8035, 1471] == 1.0
 co_occurrences(8035)
 
 # %%
-ncoo_sum = ncoo.sum(1)
+ones_vec = np.ones(coo.shape[0])
+ncoo_sum = ncoo.dot(ones_vec)
 ncoo_sum = np.squeeze(np.asarray(ncoo_sum))
 
 # %%
@@ -265,5 +266,7 @@ plt.xscale('log')
 plt.show()
 
 # %%
-plt.hexbin(np.log10(samples_per_label_raw), ncoo_sum, gridsize=20)
+plt.hexbin(np.log10(samples_per_label_raw), ncoo_sum, gridsize=30)
 plt.show()
+
+# %%
