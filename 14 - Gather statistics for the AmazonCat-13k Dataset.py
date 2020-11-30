@@ -1,5 +1,4 @@
 # %%
-from matplotlib import cm
 import pandas as pd
 import numpy as np
 import scipy.sparse as sp
@@ -28,38 +27,20 @@ Y_processed = sp.load_npz(f'datasets/AmazonCat-13K/Y.trn.processed.npz')
 
 # %%
 label_text = [None] * 13_330
-with open('datasets/AmazonCat-13K/Yf.txt', 'r') as f:
-    for id, line in enumerate(f):
+with open('datasets/AmazonCat-13K/Yf.txt', 'r') as sf:
+    for id, line in enumerate(sf):
         line = line.strip()
         label_text[id] = line
 
 # %% [markdown]
 # The dataset has the fields: *uid*, *title*, *content*, *target_ind*, *target_rel*.
-# Next, we can calculate the maximum and minimum inds.
-
-# %%
-max_ind = 0
-min_ind = 2_147_483_647
-for inds in df_raw['target_ind']:
-    a = np.array(inds)
-    ma = a.max()
-    if ma > max_ind:
-        max_ind = ma
-    mi = a.min()
-    if mi < min_ind:
-        min_ind = mi
-
-print("Max ind:", max_ind)
-print("Min ind:", min_ind)
-print("Count (= difference + 1):", max_ind - min_ind + 1)
-print("Count (expected):", CLASS_COUNT)
 
 # %%
 vlen = np.vectorize(len)
 
-# Samples per label
-samples_per_label_raw = np.asarray(Y_raw.sum(0)).flatten()
-samples_per_label_processed = np.asarray(Y_processed.sum(0)).flatten()
+# Samples per label (sf - sample frequency)
+sf = np.asarray(Y_raw.sum(0)).flatten()
+sf_processed = np.asarray(Y_processed.sum(0)).flatten()
 
 # Labels per sample
 labels_per_sample_raw = np.asarray(Y_raw.sum(1)).flatten()
@@ -78,7 +59,7 @@ ax1.set_title('Samples per Label Boxplot')
 ax1.set_yscale('log')
 ax1.set_xlabel('Label (sorted by decreasing occurence)')
 ax1.set_ylabel('Number of Samples')
-ax1.boxplot(samples_per_label_raw)
+ax1.boxplot(sf)
 fig1.savefig(f'datasets/AmazonCat-13K/stats/boxplot.png', dpi=163)
 fig1.savefig(f'datasets/AmazonCat-13K/stats/boxplot.pdf')
 
@@ -87,32 +68,34 @@ fig1.savefig(f'datasets/AmazonCat-13K/stats/boxplot.pdf')
 
 # %%
 # Constants
-sorted = np.sort(samples_per_label_raw)
-samples_per_label_raw_mean = np.mean(sorted)
-samples_per_label_raw_median = np.median(sorted)
+sf_sorted = np.sort(sf)
+samples_per_label_raw_mean = np.mean(sf_sorted)
+samples_per_label_raw_median = np.median(sf_sorted)
 
 fig2, ax2 = plt.subplots()
 ax2.set_title('Samples per Label Histogram')
 ax2.set_yscale('log')
-ax2.set_xlabel('Label (sorted by decreasing occurence)')
+ax2.set_xlabel('Label (sorted by decreasing occurrence)')
 ax2.set_ylabel('Number of Samples')
 ax2.hlines(samples_per_label_raw_mean, 0, 1, transform=ax2.get_yaxis_transform(), color='blue', linestyles='dashed')
 ax2.hlines(samples_per_label_raw_median, 0, 1, transform=ax2.get_yaxis_transform(), color='green', linestyles='dashed')
-ax2.legend(['mean', 'median'], loc='upper right')
-ax2.plot(np.arange(sorted.shape[0]), sorted[::-1], color='k')
+ax2.legend(['mean', 'median'], loc='lower right')
+ax2.plot(np.arange(sf_sorted.shape[0]), sf_sorted, color='k')
 
 plt.grid()
 fig2.savefig(f'datasets/AmazonCat-13K/stats/histogram.png', dpi=163)
 fig2.savefig(f'datasets/AmazonCat-13K/stats/histogram.pdf')
 
 # %%
-hist, bins = np.histogram(samples_per_label_raw, bins=50)
+hist, bins = np.histogram(sf, bins=50)
 logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
-plt.hist(samples_per_label_raw, bins=logbins)
+plt.hist(sf, bins=logbins)
 plt.xscale('log')
-plt.title('Samples per label distribution')
-plt.xlabel('Samples per label')
+plt.title('Samples per Label Distribution')
+plt.xlabel('Number of Samples')
 plt.ylabel('Frequency')
+plt.savefig(f'datasets/AmazonCat-13K/stats/distribution.png', dpi=163)
+plt.savefig(f'datasets/AmazonCat-13K/stats/distribution.pdf')
 plt.show()
 
 # %% [markdown]
@@ -144,11 +127,11 @@ stats = [
     ('title char lengths', get_stats(vlen(df_raw['title']))),
     ('content char lengths', get_stats(vlen(df_raw['content']))),
 
-    ('raw samples per label', get_stats(samples_per_label_raw)),
+    ('raw samples per label', get_stats(sf)),
     ('raw labels per sample', get_stats(labels_per_sample_raw)),
     ('raw token lengths', get_stats(tokens_raw)),
 
-    ('processed samples per label', get_stats(samples_per_label_processed)),
+    ('processed samples per label', get_stats(sf_processed)),
     ('processed labels per sample', get_stats(labels_per_sample_processed)),
     ('processed token lengths', get_stats(tokens_processed)),
 ]
@@ -159,47 +142,40 @@ stats_df.to_csv(f'datasets/AmazonCat-13K/stats/all_stats.csv')
 
 # %% [markdown]
 # Calculate the labels below a set of frequency thresholds
-
-# %%
-id_text_map = [None] * 13_330
-with open('datasets/AmazonCat-13K/Yf.txt', 'r') as f:
-    for id, line in enumerate(f):
-        line = line.strip()
-        id_text_map[id] = line
-
-def label_text(id):
-    return id_text_map[id]
-
-# %%
-freqs_args = np.argsort(samples_per_label_raw)
+sf_args = np.argsort(sf)
 
 def freqs_args_below(threshold):
     # Index before which all indexes point to frequences below the threshold
-    i = np.searchsorted(samples_per_label_raw, threshold, side='right', sorter=freqs_args)
+    i = np.searchsorted(sf, threshold, side='right', sorter=sf_args)
     # return freqs_args[i-1:0:-1]
-    return freqs_args[i-1]
+    return sf_args[i-1]
 
 vfreqs_args_below = np.vectorize(freqs_args_below)
-
-# %%
 thresholds = [10, 100, 1_000, 10_000, 100_000]
 labels = vfreqs_args_below(thresholds)
 
+# %% Save
 threshold_labels = pd.DataFrame(
-    { 'label': labels, 'text': [label_text(label) for label in labels], 'threshold': thresholds, 'frequency': samples_per_label_raw[labels] }
+    { 'label': labels, 'text': [label_text[label] for label in labels], 'threshold': thresholds, 'frequency': sf[labels] }
 )
 threshold_labels.to_csv(f'datasets/AmazonCat-13K/stats/topbelowk.csv')
 
 # %% [markdown]
 # Calculate the top 10 most frequent labels
-freqs_args_before = np.argsort(samples_per_label_raw)
+f_args = np.argsort(sf)
 
-top10freq_id = freqs_args_before[:-(10 + 1):-1]
+top10 = f_args[:-(10 + 1):-1]
 
+# %% Save top 10 most frequent labels
 top10freqs = pd.DataFrame(
-    { 'label': top10freq_id, 'text': [label_text(label) for label in top10freq_id], 'frequency': samples_per_label_raw[top10freq_id] }
+    { 'label': top10, 'text': [label_text[label] for label in top10], 'frequency': sf[top10] }
 )
 top10freqs.to_csv(f'datasets/AmazonCat-13K/stats/top10.csv')
+
+# %% In how many samples are top 10 labels?
+rows = Y_raw[:, top10].nonzero()[0]
+row_count = np.unique(rows).shape[0]
+row_count / Y_raw.shape[0]
 
 #%%
 def imbalance_ratio(label):
@@ -241,20 +217,20 @@ def co_occurrences(label):
 
 # %% Write the subclasses of books
 books_sub_classes = sub_classes(1471)
-with open('datasets/AmazonCat-13K/subclasses/books.txt', 'w') as f:
-    f.writelines((label + "\n" for label in books_sub_classes))
+with open('datasets/AmazonCat-13K/stats/books.txt', 'w') as sf:
+    sf.writelines((label + "\n" for label in books_sub_classes))
 
 # %% Write the subclasses of music
 music_sub_classes = sub_classes(7961)
 
-with open('datasets/AmazonCat-13K/subclasses/music.txt', 'w') as f:
-    f.writelines((label + "\n" for label in music_sub_classes))
+with open('datasets/AmazonCat-13K/stats/music.txt', 'w') as sf:
+    sf.writelines((label + "\n" for label in music_sub_classes))
 
 # %% Write the subclasses of movies & tv
 moviestv_sub_classes = sub_classes(7892)
 
-with open('datasets/AmazonCat-13K/subclasses/moviestv.txt', 'w') as f:
-    f.writelines((label + "\n" for label in moviestv_sub_classes))
+with open('datasets/AmazonCat-13K/stats/moviestv.txt', 'w') as sf:
+    sf.writelines((label + "\n" for label in moviestv_sub_classes))
 
 # %% Is 'natural history' a subclass of 'books'
 ncoo[8035, 1471] == 1.0
@@ -271,18 +247,18 @@ ncoo_sum = np.squeeze(np.asarray(ncoo_sum))
 plt.title('Co-Occurrences by Label Frequency')
 plt.xlabel('# of samples per label')
 plt.ylabel('summed co-occurences')
-plt.scatter(samples_per_label_raw, ncoo_sum)
+plt.scatter(sf, ncoo_sum)
 plt.xscale('log')
 plt.show()
 
 # %%
-plt.hexbin(np.log10(samples_per_label_raw), ncoo_sum, gridsize=30)
+plt.hexbin(np.log10(sf), ncoo_sum, gridsize=30)
 plt.show()
 
 # %%
-hist, xbins, ybins = np.histogram2d(samples_per_label_raw, ncoo_sum, bins=50)
+hist, xbins, ybins = np.histogram2d(sf, ncoo_sum, bins=50)
 logxbins = np.logspace(np.log10(xbins[0]), np.log10(xbins[-1]), len(xbins))
-plt.hist2d(samples_per_label_raw, ncoo_sum, [logxbins,ybins])
+plt.hist2d(sf, ncoo_sum, [logxbins,ybins])
 plt.xscale('log')
 plt.show()
 
