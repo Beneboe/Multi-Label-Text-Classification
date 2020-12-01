@@ -141,6 +141,23 @@ stats_df = pd.DataFrame(ds_stats, index=ds_stats_index)
 stats_df.to_csv(f'datasets/AmazonCat-13K/stats/all_stats.csv')
 
 # %% [markdown]
+# Calculate the top 10 most frequent labels
+sf_args = np.argsort(sf)
+
+top10 = sf_args[:-(10 + 1):-1]
+
+# %% Save top 10 most frequent labels
+top10freqs = pd.DataFrame(
+    { 'label': top10, 'text': [label_text[label] for label in top10], 'frequency': sf[top10] }
+)
+top10freqs.to_csv(f'datasets/AmazonCat-13K/stats/top10.csv')
+
+# %% In how many samples are top 10 labels?
+rows = Y_raw[:, top10].nonzero()[0]
+row_count = np.unique(rows).shape[0]
+row_count / Y_raw.shape[0]
+
+# %% [markdown]
 # Calculate the labels below a set of frequency thresholds
 sf_args = np.argsort(sf)
 
@@ -152,28 +169,16 @@ def freqs_args_below(threshold):
 
 vfreqs_args_below = np.vectorize(freqs_args_below)
 thresholds = [10, 100, 1_000, 10_000, 100_000]
-labels = vfreqs_args_below(thresholds)
+l2 = vfreqs_args_below(thresholds)
 
-# %% Save
+# %% Save the labels
 threshold_labels = pd.DataFrame(
-    { 'label': labels, 'text': [label_text[label] for label in labels], 'threshold': thresholds, 'frequency': sf[labels] }
+    { 'label': l2, 'text': [label_text[label] for label in l2], 'threshold': thresholds, 'frequency': sf[l2] }
 )
 threshold_labels.to_csv(f'datasets/AmazonCat-13K/stats/topbelowk.csv')
 
-# %% [markdown]
-# Calculate the top 10 most frequent labels
-f_args = np.argsort(sf)
-
-top10 = f_args[:-(10 + 1):-1]
-
-# %% Save top 10 most frequent labels
-top10freqs = pd.DataFrame(
-    { 'label': top10, 'text': [label_text[label] for label in top10], 'frequency': sf[top10] }
-)
-top10freqs.to_csv(f'datasets/AmazonCat-13K/stats/top10.csv')
-
-# %% In how many samples are top 10 labels?
-rows = Y_raw[:, top10].nonzero()[0]
+# %% In how many samples the labels?
+rows = Y_raw[:, l2].nonzero()[0]
 row_count = np.unique(rows).shape[0]
 row_count / Y_raw.shape[0]
 
