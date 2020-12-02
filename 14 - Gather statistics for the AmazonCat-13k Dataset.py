@@ -201,6 +201,9 @@ imbalance_ratio(8035)
 # %% Find out the imbalance ratio for 'books'
 imbalance_ratio(1471)
 
+# %% Find out the imbalance ratio for 'personal care'
+imbalance_ratio(8842)
+
 # %%
 coo = Y_raw.astype('float32')
 coo = coo.transpose().dot(coo)

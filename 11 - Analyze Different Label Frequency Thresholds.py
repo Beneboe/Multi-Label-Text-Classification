@@ -39,16 +39,18 @@ ub_recalls = [mt.recall(ub_yp[:, i], ye[:, i]) for i in range(len(labels))]
 # formatted_thresholds = ['{:,d}'.format(threshold) for threshold in thresholds]
 formatted_thresholds = ['{:}\n({:,d})'.format(label, thresholds) for label, thresholds in zip(labels, thresholds)]
 
-line1, = plt.plot(formatted_thresholds, b_precisions, 'bs', label = 'Balanced Precision')
 line2, = plt.plot(formatted_thresholds, b_recalls, 'b^', label = 'Balanced Recall')
+line1, = plt.plot(formatted_thresholds, b_precisions, 'bs', label = 'Balanced Precision')
 # line3, = plt.plot(formatted_thresholds, ub_precisions, 'ys', label = 'Unbalanced Precision')
 # line4, = plt.plot(formatted_thresholds, ub_recalls, 'y^', label = 'Unbalanced Recall')
 
 plt.title('L2 Deconstructed Performance')
 plt.xlabel('Labels of L2')
 plt.ylabel('Metric Performance')
+
 plt.legend()
 plt.grid()
+plt.tight_layout()
 
 plt.savefig('results/imgs/l2_deconstructed_performance.png', dpi=163)
 plt.savefig('results/imgs/l2_deconstructed_performance.pdf')
