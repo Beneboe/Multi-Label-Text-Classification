@@ -57,6 +57,17 @@ f1score_df = pd.DataFrame(f1score_table)
 f1score_df.to_csv(f'results/imgs_data/f1scores.csv')
 f1score_df
 
+# %% Get missing
+for i in range(len(l2)):
+    print((i,mt.f1score(l2_ub_yp[:, i], l2_ye[:, i])))
+
+# %%
+print('Label', l2[0])
+print('Recall', mt.recall(l2_ub_yp[:, 0], l2_ye[:, 0]))
+print('Precision', mt.precision(l2_ub_yp[:, 0], l2_ye[:, 0]))
+cm = mt.get_confusion(l2_ub_yp[:, 0], l2_ye[:, 0])
+print('Confusion', np.array(list(cm)).reshape((2,2)))
+
 # %%
 print('Labels in l1_b that always predict false')
 print([l2[label] for label in range(len(l2)) if np.all(mt.apply_threshold(l1_b_yp[:, label]) == 0)])
@@ -100,8 +111,8 @@ plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic')
 plt.legend(loc="lower right")
-plt.savefig(f'results/imgs/micro_roc.png', dpi=163)
-plt.savefig(f'results/imgs/micro_roc.pdf')
+plt.savefig(f'results/imgs/cga_curves.png', dpi=163)
+plt.savefig(f'results/imgs/cga_curves.pdf')
 plt.show()
 
 # %%
