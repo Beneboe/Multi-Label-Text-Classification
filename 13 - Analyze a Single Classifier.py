@@ -28,26 +28,26 @@ st.save_prediction(8842, 'unbalanced_random', yi_predict)
 # %%
 keras_type_names = ['50%positive', '20%positive', '10%positive', 'unbalanced']
 random_type_names = ['50%positive_random', 'unbalanced_random']
-class_types = keras_type_names + random_type_names
-class_names = [st.get_name(CLASS, n) for n in class_types]
+all_classes = keras_type_names + random_type_names
+all_class_names = ['1:1', '10:2', '10:1', 'unbalanced', 'random 1:1', 'random 222:1']
 
-def predictions():
-    for name in class_types:
+def predictions(classifiers):
+    for name in classifiers:
         yield st.load_prediction(CLASS, name)
 
-def confusions():
-    for yi_predict in predictions():
+def confusions(classifiers):
+    for yi_predict in predictions(classifiers):
         yield mt.get_confusion(yi_predict, yi_expected)
 
-def metrics():
-    for yi_predict in predictions():
+def metrics(classifiers):
+    for yi_predict in predictions(classifiers):
         yield mt.all_metrics(yi_predict, yi_expected)
 
 # %% [markdown]
 # Create the confusion matrix for each classifier
 
 # %%
-for name, cm in zip(class_names, confusions()):
+for name, cm in zip(all_class_names, confusions(all_classes)):
     plot_confusion(cm, name)
     plt.tight_layout()
     plt.savefig(f'results/imgs/classifier_{name}_confusion.png', dpi=163)
@@ -57,7 +57,7 @@ for name, cm in zip(class_names, confusions()):
 # %%
 nrows, ncols = 2, 3
 fig, axs = plt.subplots(nrows, ncols, figsize=(7 * ncols, 5 * nrows))
-for i, (name, cm) in enumerate(zip(class_names, confusions())):
+for i, (name, cm) in enumerate(zip(all_class_names, confusions(all_classes))):
     ax = axs[i // ncols, i % ncols]
     plot_confusion(cm, name, ax)
 
@@ -68,8 +68,8 @@ plt.savefig(f'results/imgs/classifier_{CLASS}_all_confusion.pdf')
 # %% [markdown]
 # Create metrics comparison
 metric_comparison = pd.DataFrame(
-    list(metrics()),
-    index=pd.Index([name for name in class_types]))
+    list(metrics(all_classes)),
+    index=pd.Index([name for name in all_class_names]))
 
 metric_comparison.to_csv(f'results/imgs_data/classifier_{CLASS}_all_metrics.csv')
 metric_comparison
