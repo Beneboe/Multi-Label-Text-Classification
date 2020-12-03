@@ -13,16 +13,9 @@ INPUT_LENGTH = 10
 X_test, y_test = ds.import_amazoncat13k('tst', INPUT_LENGTH)
 
 # %% [markdown]
-# ## Load the prediction file
-
-# %%
-y_predict = sp.load_npz('results/xbert/elmo-a0-s0/tst.pred.xbert.npz')
-
-# %% [markdown]
 # ##  Map from original label index to X-BERT label index
 
 # %%
-
 # Maps label text -> X-BERT label id
 xbert_label_map = {}
 with open('datasets/AmazonCat-13K/xbert_mapping.txt', 'r') as f:
@@ -46,47 +39,44 @@ def to_xbert_id(og_label_id):
     return xbert_label_map[label_text]
 
 # %% [markdown]
-# ##  Calculate the metrics per label
+# ## Load the prediction file
 
 # %%
-def metrics(label):
-    _, yi_expected = ds.get_dataset(X_test, y_test, label)
-    yi_predict = y_predict[:, to_xbert_id(label)]
-    return mt.all_metrics(yi_predict, yi_expected)
+xbert_yp = sp.load_npz('results/xbert/elmo-a0-s0/tst.pred.xbert.npz')
 
-# %% [markdown]
-# ## Calculate the micro and macro f1score
+# %% X-BERT predictions
+l1 = ds.amazoncat13k_top10_labels
+l2 = ds.amazoncat13k_threshold_labels
 
-# %%
-labels = ds.amazoncat13k_top10_labels
-mapped_labels = [to_xbert_id(label) for label in labels]
+l1_xbert = [to_xbert_id(label) for label in l1]
+l2_xbert = [to_xbert_id(label) for label in l2]
 
-xbert_y_predict = y_predict[:, mapped_labels].toarray()
-xbert_y_expect = y_test[:, labels].toarray()
+l1_xbert_yp = xbert_yp[:, l1_xbert].toarray()
+l1_xbert_ye = y_test[:, l1].toarray()
 
-# %%
-# The macro and micro metrics need the threshold applied
-xbert_y_predict_bin = mt.apply_threshold(xbert_y_predict)
-macro = mt.macro_f1score(xbert_y_predict_bin, xbert_y_expect)
-micro = mt.micro_f1score(xbert_y_predict_bin, xbert_y_expect)
+l2_xbert_yp = xbert_yp[:, l2_xbert].toarray()
+l2_xbert_ye = y_test[:, l2].toarray()
 
-print(f'Macro f1score {macro}')
-print(f'Micro f1score {micro}')
+# %% CGA predictions
 
-# %%
-cga_y_predict = np.array([st.load_prediction(label, 'unbalanced') for label in labels]).T
 # Cannot use the same y_expect for xbert and ova because the test set was shuffled when the prediction for ova was
 # calculated and therefore the same shuffling needs to apply to y_expect
-cga_y_expect = np.array([ds.get_dataset(X_test, y_test, label)[1] for label in labels]).T
+l1_cga_yp = np.array([st.load_prediction(label, 'unbalanced') for label in l1]).T
+l2_cga_yp = np.array([st.load_prediction(label, 'unbalanced') for label in l2]).T
+
+l1_cga_ye = np.array([ds.get_dataset(X_test, y_test, label)[1] for label in l1]).T
+l2_cga_ye = np.array([ds.get_dataset(X_test, y_test, label)[1] for label in l2]).T
 
 # %% [markdown]
 # ## Create the ROC curve
 
 # %%
-curve_names = ['X-BERT', 'Coarse']
+curve_names = ['L1 X-BERT', 'L1 Coarse', 'L2 X-BERT', 'L2 Coarse']
 curves = [
-    roc_curve(xbert_y_expect.ravel(), xbert_y_predict.ravel()),
-    roc_curve(cga_y_expect.ravel(), cga_y_predict.ravel())
+    roc_curve(l1_xbert_ye.ravel(), l1_xbert_yp.ravel()),
+    roc_curve(l1_cga_ye.ravel(), l1_cga_yp.ravel()),
+    roc_curve(l2_xbert_ye.ravel(), l2_xbert_yp.ravel()),
+    roc_curve(l2_cga_ye.ravel(), l2_cga_yp.ravel()),
 ]
 areas = [auc(fpr, tpr) for fpr, tpr, _ in curves]
 
@@ -105,4 +95,14 @@ plt.savefig(f'results/imgs/xbert_curve.png', dpi=163)
 plt.savefig(f'results/imgs/xbert_curve.pdf')
 plt.show()
 
+# %% [markdown]
+# ## Calculate the micro and macro f1score
+
 # %%
+# The macro and micro metrics need the threshold applied
+xbert_yp_bin = mt.apply_threshold(l1_xbert_yp)
+macro = mt.macro_f1score(xbert_yp_bin, l1_xbert_ye)
+micro = mt.micro_f1score(xbert_yp_bin, l1_xbert_ye)
+
+print(f'Macro f1score {macro}')
+print(f'Micro f1score {micro}')

@@ -16,7 +16,6 @@ X_test, y_test = ds.import_amazoncat13k('tst', INPUT_LENGTH)
 # %% [markdown]
 # ## Load the prediction files
 
-
 # %%
 # Get label sets
 l1 = ds.amazoncat13k_top10_labels
