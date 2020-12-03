@@ -5,7 +5,9 @@ import utils.metrics as mt
 import utils.dataset as ds
 import utils.storage as st
 import numpy as np
+import pandas as pd
 from sklearn.metrics import roc_curve, auc
+from itertools import product
 
 # %%
 # load the test set
@@ -100,9 +102,39 @@ plt.show()
 
 # %%
 # The macro and micro metrics need the threshold applied
-xbert_yp_bin = mt.apply_threshold(l1_xbert_yp)
-macro = mt.macro_f1score(xbert_yp_bin, l1_xbert_ye)
-micro = mt.micro_f1score(xbert_yp_bin, l1_xbert_ye)
+l1_xbert_yp_bin = mt.apply_threshold(l1_xbert_yp)
+l2_xbert_yp_bin = mt.apply_threshold(l2_xbert_yp)
 
-print(f'Macro f1score {macro}')
-print(f'Micro f1score {micro}')
+macro = mt.macro_f1score
+micro = mt.micro_f1score
+
+f1scores = [
+    (macro(l1_cga_yp, l1_cga_ye), micro(l1_cga_yp, l1_cga_ye)),
+    (macro(l1_xbert_yp_bin, l1_xbert_ye), micro(l1_xbert_yp_bin, l1_xbert_ye)),
+    (macro(l2_cga_yp, l2_cga_ye), micro(l2_cga_yp, l2_cga_ye)),
+    (macro(l2_xbert_yp_bin, l2_xbert_ye), micro(l2_xbert_yp_bin, l2_xbert_ye)),
+]
+
+f1score_table = zip(product(['L1', 'L2'], ['coarse', 'X-BERT']), f1scores)
+f1score_table = [u + v for u, v in f1score_table]
+
+f1score_df = pd.DataFrame(f1score_table, columns=['labels', 'approach', 'macro-f1', 'micro-f1'])
+f1score_df.to_csv(f'results/imgs_data/comp_f1scores.csv')
+f1score_df
+
+# %%
+output = f1score_df.to_string(formatters={
+    'macro-f1': '{:,.2%}'.format,
+    'micro-f1': '{:,.2%}'.format,
+})
+print(output)
+
+# %%
+for i in range(len(l2)):
+    print(mt.f1score(l2_xbert_yp_bin[:, i], l2_xbert_ye[:, i]))
+
+# %%
+cm = mt.get_confusion(l2_xbert_yp_bin[:, 0], l2_xbert_ye[:, 0])
+print(cm)
+
+# %%

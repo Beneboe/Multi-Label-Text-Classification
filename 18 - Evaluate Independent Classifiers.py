@@ -52,7 +52,7 @@ f1scores = [
 f1score_table = zip(it.product(['L1', 'L2'], ['balanced', 'unbalanced']), f1scores)
 f1score_table = [u + v for u, v in f1score_table]
 
-f1score_df = pd.DataFrame(f1score_table)
+f1score_df = pd.DataFrame(f1score_table, columns=['labels', 'balance', 'macro-f1', 'micro-f1'])
 f1score_df.to_csv(f'results/imgs_data/f1scores.csv')
 f1score_df
 
