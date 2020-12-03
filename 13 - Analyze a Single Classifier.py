@@ -125,8 +125,8 @@ for m in metrics(keras_classes):
 line2, = plt.plot(x_ticks, recalls, 'b^', label = 'Recall')
 line1, = plt.plot(x_ticks, precisions, 'bs', label = 'Precision')
 
-plt.title('Sub-sampling strategy comparison')
-plt.xlabel('Sub-sampling strategy')
+plt.title(f"Sub-Sampling Ratio Performance for '{CLASS_NAME}'")
+plt.xlabel('Sub-Sampling Strategy')
 plt.ylabel('Metric Performance')
 
 plt.legend()
