@@ -42,6 +42,10 @@ def f1score(y_predict, y_expected, threshold = 0.5) -> float:
     rc = recall(y_predict, y_expected, threshold)
     return 2 * (pr * rc) / (pr + rc)
 
+def fpr(y_predict, y_expected, threshold = 0.5) -> float:
+    _, fp, _, tn = get_confusion(y_predict, y_expected, threshold)
+    return fp / (fp + tn)
+
 def all_metrics(y_predict, y_expected, threshold = 0.5) -> Dict[str, Any]:
     return {
         'accuracy': accuracy(y_predict, y_expected, threshold),

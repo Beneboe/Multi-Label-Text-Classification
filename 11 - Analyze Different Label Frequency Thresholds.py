@@ -6,6 +6,7 @@ import utils.storage as st
 import utils.metrics as mt
 import utils.dataset as ds
 from itertools import product
+from sklearn.metrics import roc_curve
 
 # %% [markdown]
 # # Analyze Different Label Frequency Thresholds
@@ -31,6 +32,7 @@ b_recalls = [mt.recall(b_yp[:, i], ye[:, i]) for i in range(len(labels))]
 
 ub_precisions = [mt.precision(ub_yp[:, i] , ye[:, i]) for i in range(len(labels))]
 ub_recalls = [mt.recall(ub_yp[:, i], ye[:, i]) for i in range(len(labels))]
+ub_fprs = [mt.fpr(ub_yp[:, i], ye[:, i]) for i in range(len(labels))]
 
 # %% [markdown]
 # Graph the performance of each thresholds
@@ -66,8 +68,39 @@ table = pd.DataFrame({
     'balanced recall': b_recalls,
     'unbalanced precision': ub_precisions,
     'unbalanced recall': ub_recalls,
+    'unbalanced fpr': ub_fprs,
 })
 table.to_csv('results/imgs_data/l2_deconstructed_performance.csv')
 table
+
+# %%
+
+for i in range(4):
+    fpr, tpr, _ = roc_curve(ye[:, i], ub_yp[:, i])
+    plt.plot(fpr, tpr, lw=2, label=i)
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic')
+plt.legend(loc="lower right")
+plt.show()
+
+# %%
+fpr, tpr, th = roc_curve(ye[:, 1], ub_yp[:, 1])
+
+pd.DataFrame({
+    'Threshold': th,
+    'FPR': fpr,
+    'TPR': tpr,
+})
+
+# %%
+p = ub_yp[:, 1]
+
+pd.DataFrame([{
+    'max': p.max(),
+    'min': p.min(),
+}])
 
 # %%
