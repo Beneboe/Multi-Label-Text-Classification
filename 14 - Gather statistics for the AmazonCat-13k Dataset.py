@@ -210,14 +210,8 @@ row_count / Y_raw.shape[0]
 
 #%%
 def imbalance_ratio(label):
-    y = Y_raw[:, label].toarray().flatten()
-
-    assert len(y.shape) == 1
-
-    y_neg = np.count_nonzero(y == 0)
-    y_pos = np.count_nonzero(y == 1)
-
-    assert (y_neg + y_pos) == y.shape[0]
+    y_pos = sf[label]
+    y_neg = Y_raw.shape[0] - y_pos
 
     return float(max(y_neg, y_pos))/float(min(y_neg, y_pos))
 
