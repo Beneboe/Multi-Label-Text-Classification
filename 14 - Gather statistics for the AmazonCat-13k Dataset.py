@@ -72,19 +72,19 @@ sf_sorted = np.sort(sf)
 samples_per_label_raw_mean = np.mean(sf_sorted)
 samples_per_label_raw_median = np.median(sf_sorted)
 
-fig2, ax2 = plt.subplots()
-ax2.set_title('Samples per Label Histogram')
-ax2.set_yscale('log')
-ax2.set_xlabel('Label (sorted by decreasing occurrence)')
-ax2.set_ylabel('Number of Samples')
-ax2.hlines(samples_per_label_raw_mean, 0, 1, transform=ax2.get_yaxis_transform(), color='blue', linestyles='dashed')
-ax2.hlines(samples_per_label_raw_median, 0, 1, transform=ax2.get_yaxis_transform(), color='green', linestyles='dashed')
-ax2.legend(['mean', 'median'], loc='lower right')
-ax2.plot(np.arange(sf_sorted.shape[0]), sf_sorted, color='k')
-
+plt.title('Samples per Label Histogram')
+plt.yscale('log')
+plt.xlabel('Label (sorted by decreasing occurrence)')
+plt.ylabel('Number of Samples')
+plt.axhline(samples_per_label_raw_mean, color='blue', linestyle='dashed', label='mean')
+plt.axhline(samples_per_label_raw_median,color='green', linestyle='dashed', label='median')
+plt.legend(loc='lower right')
+plt.plot(np.arange(sf_sorted.shape[0]), sf_sorted, color='k')
 plt.grid()
-fig2.savefig(f'datasets/AmazonCat-13K/stats/histogram.png', dpi=163)
-fig2.savefig(f'datasets/AmazonCat-13K/stats/histogram.pdf')
+
+plt.savefig(f'datasets/AmazonCat-13K/stats/histogram.png', dpi=163)
+plt.savefig(f'datasets/AmazonCat-13K/stats/histogram.pdf')
+plt.show()
 
 # %%
 hist, bins = np.histogram(sf, bins=50)
@@ -93,10 +93,36 @@ plt.hist(sf, bins=logbins)
 plt.xscale('log')
 plt.title('Samples per Label Distribution')
 plt.xlabel('Number of Samples')
-plt.ylabel('Frequency')
+plt.ylabel('Number of Number of Samples')
 plt.savefig(f'datasets/AmazonCat-13K/stats/distribution.png', dpi=163)
 plt.savefig(f'datasets/AmazonCat-13K/stats/distribution.pdf')
 plt.show()
+
+# %% Combined
+fig, (ax1, ax2) = plt.subplots(1, 2, constrained_layout=True, figsize=(6.4 * 1.5, 4.8))
+ax1.set_title('Samples per Label Histogram')
+ax1.set_yscale('log')
+ax1.set_xlabel('Label (sorted by decreasing occurrence)')
+ax1.set_ylabel('Number of Samples')
+ax1.axhline(samples_per_label_raw_mean, color='blue', linestyle='dashed', label='mean')
+ax1.axhline(samples_per_label_raw_median,color='green', linestyle='dashed', label='median')
+ax1.legend(loc='lower right')
+ax1.plot(np.arange(sf_sorted.shape[0]), sf_sorted, color='k')
+ax1.grid()
+
+
+hist, bins = np.histogram(sf, bins=50)
+logbins = np.logspace(np.log10(bins[0]), np.log10(bins[-1]), len(bins))
+ax2.hist(sf, bins=logbins)
+ax2.set_xscale('log')
+ax2.set_title('Samples per Label Distribution')
+ax2.set_xlabel('Number of Samples')
+ax2.set_ylabel('Number of Number of Samples')
+
+fig.savefig(f'datasets/AmazonCat-13K/stats/histdist.png', dpi=163)
+fig.savefig(f'datasets/AmazonCat-13K/stats/histdist.pdf')
+fig.show()
+
 
 # %% [markdown]
 # Next, we can calculate the statistics for class frequencies, title char lengths, content char lengths, and instance class counts.
