@@ -99,7 +99,7 @@ plt.savefig(f'datasets/AmazonCat-13K/stats/distribution.pdf')
 plt.show()
 
 # %% Combined
-fig, (ax1, ax2) = plt.subplots(1, 2, constrained_layout=True, figsize=(6.4 * 1.5, 4.8))
+fig, (ax1, ax2) = plt.subplots(1, 2, constrained_layout=True, figsize=(6.4 * 1.25, 4.8))
 ax1.set_title('Samples per Label Histogram')
 ax1.set_yscale('log')
 ax1.set_xlabel('Label (sorted by decreasing occurrence)')
