@@ -19,11 +19,11 @@ df_raw = pd.read_json('datasets/AmazonCat-13K/trn.json', lines=True)
 df_raw
 
 # %%
-X_raw = np.load(f'datasets/AmazonCat-13K/X.trn.raw.npy', allow_pickle=True)
-Y_raw = sp.load_npz(f'datasets/AmazonCat-13K/Y.trn.raw.npz')
+X_raw = np.load('datasets/AmazonCat-13K/X.trn.raw.npy', allow_pickle=True)
+Y_raw = sp.load_npz('datasets/AmazonCat-13K/Y.trn.raw.npz')
 
-X_processed = np.load(f'datasets/AmazonCat-13K/X.trn.processed.npy', allow_pickle=True)
-Y_processed = sp.load_npz(f'datasets/AmazonCat-13K/Y.trn.processed.npz')
+X_processed = np.load('datasets/AmazonCat-13K/X.trn.processed.npy', allow_pickle=True)
+Y_processed = sp.load_npz('datasets/AmazonCat-13K/Y.trn.processed.npz')
 
 # %%
 label_text = [None] * 13_330
