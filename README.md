@@ -4,10 +4,6 @@
 
 - Python 3.8
 - All the modules in `requirements.txt`
-- The datasets
-  - [GoogleNews Word embeddings](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing)
-  - [AG new corpus](https://github.com/mhjabreel/CharCnn_Keras/tree/master/data/ag_news_csv)
-  - [AmazonCat-13K](https://drive.google.com/file/d/17rVRDarPwlMpb3l5zof9h34FlwbpTu4l)
 
 Before we can use NLTK for tokenization some steps need to be completed. Open a new python session and run:
 
@@ -15,6 +11,14 @@ Before we can use NLTK for tokenization some steps need to be completed. Open a 
 import nltk
 nltk.download('punkt')
 ```
+
+## The datasets
+
+- [GoogleNews Word embeddings](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing)
+- [AG new corpus](https://github.com/mhjabreel/CharCnn_Keras/tree/master/data/ag_news_csv)
+- [AmazonCat-13K](https://drive.google.com/file/d/17rVRDarPwlMpb3l5zof9h34FlwbpTu4l)
+
+Additionally, the [Wikipedia Stats](https://stats.wikimedia.org/#/en.wikipedia.org/content/pages-to-date/full|line|all|page_type~content|monthly).
 
 ## Preprocessing the AmazonCat-13K dataset
 
